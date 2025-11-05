@@ -7,7 +7,7 @@
 **A modern, feature-rich markdown editor with live preview and Discord Rich Presence**
 
 [![Version](https://img.shields.io/github/v/release/naplon74/markedit)](https://github.com/naplon74/markedit/releases)
-[![License](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-GNU-blue.svg)](LICENSE)
 [![Downloads](https://img.shields.io/github/downloads/naplon74/markedit/total)](https://github.com/naplon74/markedit/releases)
 
 [Download Latest Release](https://github.com/naplon74/markedit/releases/latest) • [Report Bug](https://github.com/naplon74/markedit/issues) • [Request Feature](https://github.com/naplon74/markedit/issues)
@@ -184,18 +184,6 @@ markedit/
 
 ---
 
-## 🎨 Themes Preview
-
-| Dark | Light | Green Forest |
-|------|-------|--------------|
-| ![Dark Theme](https://via.placeholder.com/200x120/1e1e1e/007acc?text=Dark) | ![Light Theme](https://via.placeholder.com/200x120/ffffff/0078d4?text=Light) | ![Green Forest](https://via.placeholder.com/200x120/0d3d2e/2d8659?text=Green+Forest) |
-
-| Deep Ocean | Sunset | Cyberpunk |
-|------------|--------|-----------|
-| ![Deep Ocean](https://via.placeholder.com/200x120/0a1f44/00c8ff?text=Deep+Ocean) | ![Sunset](https://via.placeholder.com/200x120/7a2f2a/ff7a59?text=Sunset) | ![Cyberpunk](https://via.placeholder.com/200x120/0b0b14/ff00aa?text=Cyberpunk) |
-
----
-
 ## 🌐 Supported Languages
 
 - 🇬🇧 **English**
@@ -234,24 +222,6 @@ Markedit automatically checks for updates when you launch the app. When a new ve
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Here's how you can help:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
----
-
-## 📝 License
-
-This project is licensed under the **ISC License**.
-
----
-
 ## 👨‍💻 Author
 
 **naplon_**
@@ -285,9 +255,6 @@ If you like Markedit, give it a ⭐️ on GitHub!
 
 ## 🔮 Roadmap
 
-- [ ] macOS and Linux support
-- [ ] Cloud sync integration
-- [ ] Collaborative editing
 - [ ] More export formats (DOCX, etc.)
 - [ ] Custom keyboard shortcuts
 - [ ] Plugin system
