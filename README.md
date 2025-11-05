@@ -7,7 +7,7 @@
 **A modern, feature-rich markdown editor with live preview and Discord Rich Presence**
 
 [![Version](https://img.shields.io/github/v/release/naplon74/markedit)](https://github.com/naplon74/markedit/releases)
-[![License](https://img.shields.io/badge/license-GNU-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 [![Downloads](https://img.shields.io/github/downloads/naplon74/markedit/total)](https://github.com/naplon74/markedit/releases)
 
 [Download Latest Release](https://github.com/naplon74/markedit/releases/latest) • [Report Bug](https://github.com/naplon74/markedit/issues) • [Request Feature](https://github.com/naplon74/markedit/issues)
