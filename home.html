@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Load theme before page renders
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    const themeLink = document.createElement('link');
+    themeLink.rel = 'stylesheet';
+    themeLink.href = `themes/${currentTheme}.css`;
+    themeLink.dataset.theme = currentTheme;
+    document.head.appendChild(themeLink);
+  </script>
+  <style>
+    .home-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background-color: var(--bg-primary);
+    }
+
+    .custom-titlebar {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      background: var(--titlebar-bg);
+      -webkit-app-region: drag;
+      padding: 0 10px;
+      border-bottom: 1px solid var(--border-primary);
+    }
+
+    .titlebar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .titlebar-button {
+      -webkit-app-region: no-drag;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 18px;
+    }
+
+    .titlebar-button:hover {
+      background-color: var(--titlebar-hover);
+      transform: scale(1.05);
+    }
+
+    .titlebar-right {
+      display: flex;
+      gap: 2px;
+      -webkit-app-region: no-drag;
+    }
+
+    .window-button {
+      width: 46px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 14px;
+    }
+
+    .window-button:hover {
+      background-color: var(--titlebar-hover);
+    }
+
+    .window-button.close:hover {
+      background-color: #e81123;
+    }
+
+    .home-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 40px;
+    }
+
+    .welcome-section {
+      margin-bottom: 40px;
+    }
+
+    .update-notification {
+      display: none;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 20px rgba(0, 122, 204, 0.3);
+      animation: slideDown 0.4s ease-out;
+    }
+
+    .update-notification.show {
+      display: block;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .update-notification-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .update-icon {
+      font-size: 24px;
+      color: #ffffff;
+    }
+
+    .update-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    .update-message {
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 14px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .update-progress {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .update-progress.show {
+      display: block;
+    }
+
+    .update-progress-bar {
+      background: #ffffff;
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 8px;
+    }
+
+    .update-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .update-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .update-btn.primary {
+      background: #ffffff;
+      color: var(--accent-primary);
+    }
+
+    .update-btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+    }
+
+    .update-btn.secondary {
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .update-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .welcome-title {
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .welcome-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+    }
+
+    .new-file-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-bg);
+      border-radius: 8px;
+      color: var(--btn-text);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 40px;
+    }
+
+    .new-file-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: var(--btn-hover);
+      border-color: var(--btn-hover);
+    }
+
+    .new-file-button:active {
+      transform: translateY(0);
+    }
+
+    .import-btn {
+      background: var(--bg-secondary);
+      border-color: var(--border-primary);
+      margin-left: 15px;
+    }
+
+    .import-btn:hover {
+      background: var(--card-hover);
+      border-color: var(--border-primary);
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+    }
+
+    .files-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .file-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-primary);
+      border-radius: 8px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .file-card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .file-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-preview {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      max-height: 60px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .file-meta {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+
+    .file-menu-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      opacity: 0;
+    }
+
+    .file-card:hover .file-menu-btn {
+      opacity: 1;
+    }
+
+    .file-menu-btn:hover {
+      background-color: var(--card-hover);
+      color: var(--text-primary);
+    }
+
+    .file-card-menu {
+      position: absolute;
+      top: 45px;
+      right: 12px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-primary);
+      border-radius: 6px;
+      min-width: 150px;
+      box-shadow: var(--shadow-md);
+      z-index: 100;
+      display: none;
+    }
+
+    .file-card-menu.show {
+      display: block;
+      animation: slideDown 0.2s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .file-card-menu-item {
+      padding: 10px 16px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .file-card-menu-item:hover {
+      background-color: var(--card-hover);
+    }
+
+    .file-card-menu-item:first-child {
+      border-radius: 6px 6px 0 0;
+    }
+
+    .file-card-menu-item:last-child {
+      border-radius: 0 0 6px 6px;
+    }
+
+    .file-card-menu-item.danger:hover {
+      background-color: var(--danger-hover-bg);
+      color: var(--danger-text);
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-tertiary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 16px;
+    }
+
+    .menu-dropdown {
+      position: relative;
+    }
+
+    .menu-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-primary);
+      border-radius: 6px;
+      min-width: 180px;
+      box-shadow: var(--shadow-md);
+      z-index: 1000;
+      margin-top: 5px;
+    }
+
+    .menu-content.show {
+      display: block;
+    }
+
+    .menu-item {
+      padding: 10px 16px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+
+    .menu-item:hover {
+      background-color: var(--card-hover);
+      padding-left: 20px;
+    }
+
+    .menu-item:first-child {
+      border-radius: 6px 6px 0 0;
+    }
+
+    .menu-item:last-child {
+      border-radius: 0 0 6px 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="home-container">
+    <!-- Custom Title Bar -->
+    <div class="custom-titlebar">
+      <div class="titlebar-left">
+        <button class="titlebar-button" id="menu-btn" title="Settings">
+          <i class="fas fa-bars"></i>
+        </button>
+        <button class="titlebar-button" id="home-btn">
+          <i class="fas fa-home"></i>
+        </button>
+      </div>
+      <div class="titlebar-right">
+        <button class="window-button" id="minimize-btn">
+          <i class="fas fa-window-minimize"></i>
+        </button>
+        <button class="window-button" id="maximize-btn">
+          <i class="fas fa-window-maximize"></i>
+        </button>
+        <button class="window-button close" id="close-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Home Content -->
+    <div class="home-content">
+      <!-- Update Notification -->
+      <div class="update-notification" id="update-notification">
+        <div class="update-notification-header">
+          <i class="fas fa-download update-icon"></i>
+          <h3 class="update-title" id="update-title">Update Available</h3>
+        </div>
+        <p class="update-message" id="update-message">A new version is available and will be downloaded in the background.</p>
+        <div class="update-progress" id="update-progress">
+          <div class="update-progress-bar" id="update-progress-bar"></div>
+        </div>
+        <div class="update-actions" id="update-actions">
+          <button class="update-btn secondary" id="update-dismiss">Later</button>
+        </div>
+      </div>
+
+      <div class="welcome-section">
+        <h1 class="welcome-title" id="welcome-text" data-i18n="home_welcome">Welcome back!</h1>
+        <p class="welcome-subtitle" data-i18n="home_subtitle">Continue where you left off or start something new</p>
+      </div>
+
+      <button class="new-file-button" id="new-file-btn">
+        <i class="fas fa-plus"></i>
+        <span data-i18n="new_file">New File</span>
+      </button>
+
+      <button class="new-file-button import-btn" id="import-btn">
+        <i class="fas fa-file-import"></i>
+        <span data-i18n="import_file">Import File</span>
+      </button>
+
+      <h2 class="section-title" data-i18n="recent_files">Recent Files</h2>
+      <div class="files-grid" id="files-grid">
+        <div class="empty-state">
+          <div class="empty-state-icon">📄</div>
+          <div class="empty-state-text" data-i18n="empty_state">No files yet. Create your first markdown file!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/dialog.js"></script>
+  <script src="js/i18n.js"></script>
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    // Window controls
+    document.getElementById('minimize-btn').addEventListener('click', () => {
+      ipcRenderer.send('minimize-window');
+    });
+
+    document.getElementById('maximize-btn').addEventListener('click', () => {
+      ipcRenderer.send('maximize-window');
+    });
+
+    document.getElementById('close-btn').addEventListener('click', () => {
+      ipcRenderer.send('close-window');
+    });
+
+    // Handle close request from main process
+    ipcRenderer.on('request-close', () => {
+      // No unsaved changes on home page, just close
+      ipcRenderer.send('confirm-close');
+    });
+
+    // Burger opens settings directly
+    const menuBtn = document.getElementById('menu-btn');
+    menuBtn.addEventListener('click', () => {
+      try { localStorage.setItem('returnTo', JSON.stringify({ page: 'home' })); } catch {}
+      ipcRenderer.send('load-page', 'settings.html');
+    });
+
+    // Home button
+    document.getElementById('home-btn').addEventListener('click', () => {
+      ipcRenderer.send('load-page', 'home.html');
+    });
+
+    // New file button
+    document.getElementById('new-file-btn').addEventListener('click', async () => {
+      const fileData = await ipcRenderer.invoke('create-new-file');
+      if (fileData) {
+        localStorage.setItem('currentFileId', fileData.id);
+        ipcRenderer.send('load-page', 'editor.html');
+      }
+    });
+
+    // Import button
+    document.getElementById('import-btn').addEventListener('click', async () => {
+      const result = await ipcRenderer.invoke('import-file');
+      if (result.success) {
+        localStorage.setItem('currentFileId', result.fileId);
+        ipcRenderer.send('load-page', 'editor.html');
+      } else if (!result.cancelled && result.error) {
+        dialog.alert('Import Failed', `Import failed: ${result.error}`);
+      }
+    });
+
+    // Load user data
+    async function loadUserData() {
+      const settings = await ipcRenderer.invoke('get-settings');
+      const welcomeText = document.getElementById('welcome-text');
+      
+      if (settings && settings.username) {
+        // Get the translated base text if i18n is ready, otherwise use default
+        const base = (window.i18n && window.i18n.currentLanguage) ? i18n.t('home_welcome') : 'Welcome back';
+        // Set the text directly without data-i18n to prevent override
+        welcomeText.textContent = `${base}, ${settings.username}!`;
+        // Remove data-i18n attribute so i18n doesn't overwrite it
+        welcomeText.removeAttribute('data-i18n');
+      }
+
+      const recentFiles = await ipcRenderer.invoke('get-recent-files');
+      displayRecentFiles(recentFiles);
+    }
+
+    // Display recent files
+    function displayRecentFiles(files) {
+      const filesGrid = document.getElementById('files-grid');
+      
+      if (files.length === 0) {
+        filesGrid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="far fa-file-alt"></i></div>
+            <div class="empty-state-text">No files yet. Create your first markdown file!</div>
+          </div>
+        `;
+        return;
+      }
+
+      filesGrid.innerHTML = files.map(file => `
+        <div class="file-card" data-file-id="${file.id}">
+          <button class="file-menu-btn" data-file-id="${file.id}" data-file-title="${file.title}">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <div class="file-card-menu" data-file-id="${file.id}">
+            <div class="file-card-menu-item rename-file" data-file-id="${file.id}" data-file-title="${file.title}">
+              <i class="fas fa-edit"></i> ${window.i18n ? i18n.t('rename') : 'Rename'}
+            </div>
+            <div class="file-card-menu-item danger delete-file" data-file-id="${file.id}" data-file-title="${file.title}">
+              <i class="fas fa-trash"></i> ${window.i18n ? i18n.t('delete') : 'Delete'}
+            </div>
+          </div>
+          <div class="file-title">${file.title}</div>
+          <div class="file-preview">${file.preview || 'Empty file'}</div>
+          <div class="file-meta">Modified ${formatDate(file.lastModified)}</div>
+        </div>
+      `).join('');
+
+      // Add click handlers for file cards
+      document.querySelectorAll('.file-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          // Don't open if clicking menu button or menu items
+          if (e.target.closest('.file-menu-btn') || e.target.closest('.file-card-menu')) {
+            return;
+          }
+          const fileId = card.getAttribute('data-file-id');
+          localStorage.setItem('currentFileId', fileId);
+          ipcRenderer.send('load-page', 'editor.html');
+        });
+      });
+
+      // Add menu toggle handlers
+      document.querySelectorAll('.file-menu-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const fileId = btn.getAttribute('data-file-id');
+          const menu = document.querySelector(`.file-card-menu[data-file-id="${fileId}"]`);
+          
+          // Close all other menus
+          document.querySelectorAll('.file-card-menu').forEach(m => {
+            if (m !== menu) m.classList.remove('show');
+          });
+          
+          menu.classList.toggle('show');
+        });
+      });
+
+      // Add rename handlers
+      document.querySelectorAll('.rename-file').forEach(item => {
+        item.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const fileId = item.getAttribute('data-file-id');
+          const currentTitle = item.getAttribute('data-file-title');
+          
+          // Close menu
+          document.querySelector(`.file-card-menu[data-file-id="${fileId}"]`).classList.remove('show');
+          
+          const result = await dialog.prompt('Rename File', 'Enter new name for the file:', currentTitle, 'File name');
+          
+          if (result.action === 'ok' && result.inputValue.trim()) {
+            const success = await ipcRenderer.invoke('rename-file', fileId, result.inputValue.trim());
+            if (success) {
+              loadUserData(); // Refresh the file list
+            }
+          }
+        });
+      });
+
+      // Add delete handlers
+      document.querySelectorAll('.delete-file').forEach(item => {
+        item.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const fileId = item.getAttribute('data-file-id');
+          const fileTitle = item.getAttribute('data-file-title');
+          
+          // Close menu
+          document.querySelector(`.file-card-menu[data-file-id="${fileId}"]`).classList.remove('show');
+          
+          const result = await dialog.confirmDelete(fileTitle);
+          
+          if (result.action === 'delete') {
+            const success = await ipcRenderer.invoke('delete-file', fileId);
+            if (success) {
+              loadUserData(); // Refresh the file list
+            }
+          }
+        });
+      });
+
+      // Close menus when clicking outside
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.file-card-menu').forEach(menu => {
+          menu.classList.remove('show');
+        });
+      });
+    }
+
+    // Format date
+    function formatDate(date) {
+      const d = new Date(date);
+      const now = new Date();
+      const diffMs = now - d;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffMins < 1) return 'just now';
+      if (diffMins < 60) return `${diffMins} min ago`;
+      if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      
+      return d.toLocaleDateString();
+    }
+
+    // Initialize
+    ipcRenderer.send('rpc-set-home');
+    
+    // Initialize translations first, then load user data
+    if (window.i18n) {
+      i18n.init().then(() => {
+        loadUserData();
+      }).catch(e => {
+        console.warn('i18n init failed:', e);
+        loadUserData(); // Load anyway if i18n fails
+      });
+    } else {
+      loadUserData();
+    }
+
+    // =================== Auto Update Handling ===================
+    const updateNotification = document.getElementById('update-notification');
+    const updateTitle = document.getElementById('update-title');
+    const updateMessage = document.getElementById('update-message');
+    const updateProgress = document.getElementById('update-progress');
+    const updateProgressBar = document.getElementById('update-progress-bar');
+    const updateActions = document.getElementById('update-actions');
+    const updateDismiss = document.getElementById('update-dismiss');
+
+    let updateInfo = null;
+
+    // Dismiss notification
+    updateDismiss?.addEventListener('click', () => {
+      updateNotification.classList.remove('show');
+    });
+
+    // Update available
+    ipcRenderer.on('update-available', (_e, info) => {
+      updateInfo = info;
+      updateTitle.textContent = `Update Available: v${info?.version || ''}`;
+      updateMessage.textContent = 'A new version is being downloaded in the background.';
+      updateNotification.classList.add('show');
+      updateProgress.classList.remove('show');
+      updateActions.innerHTML = '<button class="update-btn secondary" id="update-dismiss">Dismiss</button>';
+      
+      // Re-attach dismiss handler
+      document.getElementById('update-dismiss')?.addEventListener('click', () => {
+        updateNotification.classList.remove('show');
+      });
+    });
+
+    // Download progress
+    ipcRenderer.on('download-progress', (_e, progress) => {
+      const percent = Math.floor(progress?.percent || 0);
+      updateProgress.classList.add('show');
+      updateProgressBar.style.width = `${percent}%`;
+      updateMessage.textContent = `Downloading update: ${percent}%`;
+    });
+
+    // Update downloaded
+    ipcRenderer.on('update-downloaded', (_e, info) => {
+      updateTitle.textContent = 'Update Ready to Install';
+      updateMessage.textContent = `Version ${info?.version || ''} has been downloaded. Restart to install.`;
+      updateProgress.classList.remove('show');
+      updateActions.innerHTML = `
+        <button class="update-btn primary" id="update-restart">Restart Now</button>
+        <button class="update-btn secondary" id="update-later">Later</button>
+      `;
+
+      document.getElementById('update-restart')?.addEventListener('click', () => {
+        ipcRenderer.send('quit-and-install');
+      });
+
+      document.getElementById('update-later')?.addEventListener('click', () => {
+        updateNotification.classList.remove('show');
+      });
+    });
+
+    // Update not available (silent - no notification)
+    ipcRenderer.on('update-not-available', () => {
+      // Do nothing - no update banner needed
+    });
+
+    // Update error (silent in production, just log)
+    ipcRenderer.on('update-error', (_e, err) => {
+      console.warn('Update check error:', err?.message || err);
+      // Don't show error to user unless it's critical
+    });
+  </script>
+</body>
+</html>

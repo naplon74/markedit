@@ -1,0 +1,72 @@
+/* Flowify Green Theme */
+:root {
+  /* Background colors */
+  --bg-primary: #0d3d2e;
+  --bg-secondary: #1a5943;
+  --bg-tertiary: #0f4d38;
+  
+  /* Text colors */
+  --text-primary: #e8f5e9;
+  --text-secondary: rgba(200, 255, 210, 0.8);
+  --text-tertiary: rgba(180, 255, 200, 0.6);
+  
+  /* Accent colors */
+  --accent-primary: #2d8659;
+  --accent-hover: #3aa66f;
+  --accent-active: #236b45;
+  
+  /* Border colors */
+  --border-primary: rgba(150, 255, 200, 0.15);
+  --border-secondary: rgba(150, 255, 200, 0.1);
+  
+  /* Input colors */
+  --input-bg: rgba(150, 255, 200, 0.08);
+  --input-border: rgba(150, 255, 200, 0.15);
+  --input-focus: #2d8659;
+  
+  /* Button colors */
+  --btn-bg: #2d8659;
+  --btn-hover: #3aa66f;
+  --btn-text: #ffffff;
+  
+  /* Titlebar colors */
+  --titlebar-bg: rgba(10, 30, 20, 0.95);
+  --titlebar-hover: rgba(20, 50, 35, 0.8);
+  
+  /* Editor colors */
+  --editor-bg: rgba(15, 40, 30, 0.7);
+  --preview-bg: rgba(15, 40, 30, 0.7);
+  
+  /* Scrollbar colors */
+  --scrollbar-track: rgba(0, 0, 0, 0.2);
+  --scrollbar-thumb: #2d8659;
+  --scrollbar-thumb-hover: #3aa66f;
+  
+  /* Card colors */
+  --card-bg: rgba(15, 40, 30, 0.7);
+  --card-hover: rgba(20, 50, 35, 0.8);
+  --card-border: rgba(150, 255, 200, 0.1);
+  
+  /* Modal colors */
+  --modal-bg: rgba(0, 0, 0, 0.85);
+  --modal-content-bg: #1a5943;
+  
+  /* Shadow */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+
+  /* Danger and status colors */
+  --danger-text: #ff9e9e;
+  --danger-bg: rgba(255, 158, 158, 0.12);
+  --danger-hover-bg: rgba(255, 158, 158, 0.18);
+
+  /* Accent soft background */
+  --accent-soft-bg: rgba(45, 134, 89, 0.18);
+}
+
+/* Flowify gradient background */
+body {
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+  background-attachment: fixed;
+}

@@ -1,0 +1,71 @@
+/* Sunset Theme */
+:root {
+  /* Background colors */
+  --bg-primary: #2b1a30;   /* dark plum */
+  --bg-secondary: #4a2330; /* deep maroon */
+  --bg-tertiary: #7a2f2a;  /* warm brown-red */
+  
+  /* Text colors */
+  --text-primary: #ffe9e0;  /* warm light */
+  --text-secondary: rgba(255, 220, 210, 0.85);
+  --text-tertiary: rgba(255, 210, 200, 0.6);
+  
+  /* Accent colors */
+  --accent-primary: #ff7a59; /* coral */
+  --accent-hover: #ff956f;
+  --accent-active: #e56449;
+  
+  /* Border colors */
+  --border-primary: rgba(255, 180, 160, 0.2);
+  --border-secondary: rgba(255, 180, 160, 0.12);
+  
+  /* Input colors */
+  --input-bg: rgba(255, 140, 120, 0.1);
+  --input-border: rgba(255, 180, 160, 0.2);
+  --input-focus: #ff7a59;
+  
+  /* Button colors */
+  --btn-bg: #ff7a59;
+  --btn-hover: #ff956f;
+  --btn-text: #ffffff;
+  
+  /* Titlebar colors */
+  --titlebar-bg: rgba(30, 18, 34, 0.95);
+  --titlebar-hover: rgba(60, 30, 40, 0.75);
+  
+  /* Editor colors */
+  --editor-bg: rgba(50, 26, 40, 0.85);
+  --preview-bg: rgba(50, 26, 40, 0.85);
+  
+  /* Scrollbar colors */
+  --scrollbar-track: rgba(0, 0, 0, 0.25);
+  --scrollbar-thumb: #a94a3a;
+  --scrollbar-thumb-hover: #c45c48;
+  
+  /* Card colors */
+  --card-bg: rgba(58, 29, 44, 0.9);
+  --card-hover: rgba(86, 40, 54, 0.9);
+  --card-border: rgba(255, 180, 160, 0.14);
+  
+  /* Modal colors */
+  --modal-bg: rgba(0, 0, 0, 0.85);
+  --modal-content-bg: #4a2330;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.55);
+
+  /* Status colors */
+  --danger-text: #ff9e9e;
+  --danger-bg: rgba(255, 158, 158, 0.12);
+  --danger-hover-bg: rgba(255, 158, 158, 0.18);
+  
+  /* Accent soft background */
+  --accent-soft-bg: rgba(255, 122, 89, 0.18);
+}
+
+body {
+  background: linear-gradient(135deg, #2b1a30 0%, #4a2330 40%, #7a2f2a 100%);
+  background-attachment: fixed;
+}

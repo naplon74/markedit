@@ -1,0 +1,73 @@
+/* Cyberpunk Theme */
+:root {
+  /* Background colors */
+  --bg-primary: #0b0b14;  /* near-black */
+  --bg-secondary: #111122; /* deep indigo */
+  --bg-tertiary: #161629;
+  
+  /* Text colors */
+  --text-primary: #f2f2ff;
+  --text-secondary: rgba(220, 220, 255, 0.85);
+  --text-tertiary: rgba(200, 200, 255, 0.6);
+  
+  /* Accent colors */
+  --accent-primary: #ff00aa; /* neon magenta */
+  --accent-hover: #ff33bb;
+  --accent-active: #d6008f;
+  
+  /* Border colors */
+  --border-primary: rgba(180, 120, 220, 0.25);
+  --border-secondary: rgba(180, 120, 220, 0.15);
+  
+  /* Input colors */
+  --input-bg: rgba(255, 0, 170, 0.08);
+  --input-border: rgba(255, 0, 170, 0.25);
+  --input-focus: #00ffd5; /* neon cyan for focus */
+  
+  /* Button colors */
+  --btn-bg: #ff00aa;
+  --btn-hover: #ff33bb;
+  --btn-text: #0b0b14;
+  
+  /* Titlebar colors */
+  --titlebar-bg: rgba(12, 12, 24, 0.95);
+  --titlebar-hover: rgba(26, 26, 52, 0.75);
+  
+  /* Editor colors */
+  --editor-bg: rgba(16, 16, 32, 0.85);
+  --preview-bg: rgba(16, 16, 32, 0.85);
+  
+  /* Scrollbar colors */
+  --scrollbar-track: rgba(0, 0, 0, 0.25);
+  --scrollbar-thumb: #2e2e5c;
+  --scrollbar-thumb-hover: #3a3a76;
+  
+  /* Card colors */
+  --card-bg: rgba(16, 16, 32, 0.92);
+  --card-hover: rgba(26, 26, 52, 0.92);
+  --card-border: rgba(180, 120, 220, 0.18);
+  
+  /* Modal colors */
+  --modal-bg: rgba(0, 0, 0, 0.85);
+  --modal-content-bg: #161629;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.65);
+
+  /* Status colors */
+  --danger-text: #ff9eb3;
+  --danger-bg: rgba(255, 86, 120, 0.12);
+  --danger-hover-bg: rgba(255, 86, 120, 0.18);
+  
+  /* Accent soft background */
+  --accent-soft-bg: rgba(255, 0, 170, 0.18);
+}
+
+body {
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(255, 0, 170, 0.15), transparent 60%),
+              radial-gradient(800px 400px at 90% 10%, rgba(0, 255, 213, 0.12), transparent 60%),
+              linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+  background-attachment: fixed;
+}

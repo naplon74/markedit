@@ -1,0 +1,64 @@
+{
+  "name": "markdown_editor",
+  "version": "1.0.0",
+  "description": "A modern markdown editor with live preview and Discord Rich Presence",
+  "license": "ISC",
+  "author": "naplon_",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naplon74/markedit.git"
+  },
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder -w",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "devDependencies": {
+    "electron": "^39.0.0",
+    "electron-builder": "22.14.13"
+  },
+  "dependencies": {
+    "@xhayper/discord-rpc": "^1.3.0",
+    "marked": "^16.4.1",
+    "electron-updater": "6.6.2"
+  },
+  "build": {
+    "appId": "com.naplon.markedit",
+    "productName": "Markedit",
+    "asar": true,
+    "compression": "maximum",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**",
+      "!**/*.map",
+      "!README.md",
+      "!.gitignore"
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "${productName}-${version}-Setup.${ext}",
+      "icon": "icon.ico",
+      "publish": {
+        "provider": "github",
+        "owner": "naplon74",
+        "repo": "markedit"
+      }
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "naplon74",
+      "repo": "markedit"
+    }
+  }
+}

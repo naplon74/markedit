@@ -1,0 +1,66 @@
+/* Light Theme */
+:root {
+  /* Background colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f3f3;
+  --bg-tertiary: #e8e8e8;
+  
+  /* Text colors */
+  --text-primary: #1e1e1e;
+  --text-secondary: #616161;
+  --text-tertiary: #888888;
+  
+  /* Accent colors */
+  --accent-primary: #0078d4;
+  --accent-hover: #1a8ae6;
+  --accent-active: #005a9e;
+  
+  /* Border colors */
+  --border-primary: #d4d4d4;
+  --border-secondary: #e0e0e0;
+  
+  /* Input colors */
+  --input-bg: #ffffff;
+  --input-border: #d4d4d4;
+  --input-focus: #0078d4;
+  
+  /* Button colors */
+  --btn-bg: #0078d4;
+  --btn-hover: #1a8ae6;
+  --btn-text: #ffffff;
+  
+  /* Titlebar colors */
+  --titlebar-bg: #f3f3f3;
+  --titlebar-hover: #e0e0e0;
+  
+  /* Editor colors */
+  --editor-bg: #ffffff;
+  --preview-bg: #ffffff;
+  
+  /* Scrollbar colors */
+  --scrollbar-track: #f3f3f3;
+  --scrollbar-thumb: #c4c4c4;
+  --scrollbar-thumb-hover: #a8a8a8;
+  
+  /* Card colors */
+  --card-bg: #ffffff;
+  --card-hover: #f8f8f8;
+  --card-border: #d4d4d4;
+  
+  /* Modal colors */
+  --modal-bg: rgba(0, 0, 0, 0.5);
+  --modal-content-bg: #ffffff;
+  
+  /* Shadow */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+  /* Danger and status colors */
+  --danger-text: #d32f2f;
+  --danger-bg: rgba(211, 47, 47, 0.08);
+  --danger-hover-bg: rgba(211, 47, 47, 0.12);
+
+  /* Accent soft background */
+  --accent-soft-bg: rgba(0, 120, 212, 0.12);
+}

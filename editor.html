@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Load theme before page renders
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    const themeLink = document.createElement('link');
+    themeLink.rel = 'stylesheet';
+    themeLink.href = `themes/${currentTheme}.css`;
+    themeLink.dataset.theme = currentTheme;
+    document.head.appendChild(themeLink);
+  </script>
+  <style>
+    .editor-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .custom-titlebar {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      background: var(--titlebar-bg);
+      -webkit-app-region: drag;
+      padding: 0 10px;
+      border-bottom: 1px solid var(--border-primary);
+    }
+
+    .titlebar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .titlebar-center {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      -webkit-app-region: no-drag;
+    }
+
+    .file-title-input {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 4px;
+      color: var(--text-primary);
+      padding: 4px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      width: 200px;
+      text-align: center;
+    }
+
+    .file-title-input:focus {
+      outline: none;
+      background: var(--input-bg);
+      border-color: var(--input-focus);
+      transform: scale(1.02);
+    }
+
+    .autosave-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 4px 8px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .autosave-indicator.show {
+      opacity: 1;
+    }
+
+    .autosave-indicator.saving {
+      color: var(--accent-primary);
+    }
+
+    .autosave-indicator.saved {
+      color: #4ec9b0;
+    }
+
+    .autosave-indicator i {
+      font-size: 14px;
+    }
+
+    .autosave-text {
+      font-weight: 500;
+    }
+
+    .titlebar-button {
+      -webkit-app-region: no-drag;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 18px;
+    }
+
+    .titlebar-button:hover {
+      background-color: var(--titlebar-hover);
+      transform: scale(1.05);
+    }
+
+    .titlebar-right {
+      display: flex;
+      gap: 2px;
+      -webkit-app-region: no-drag;
+    }
+
+    .window-button {
+      width: 46px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 14px;
+    }
+
+    .window-button:hover {
+      background-color: var(--titlebar-hover);
+    }
+
+    .window-button.close:hover {
+      background-color: #e81123;
+    }
+
+    .editor-main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .editor-pane,
+    .preview-pane {
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-secondary);
+    }
+
+    .editor-pane {
+      flex: 0 0 50%;
+    }
+
+    .pane-header {
+      background-color: var(--bg-tertiary);
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border-primary);
+    }
+
+    .pane-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    #markdown-input {
+      flex: 1;
+      background-color: var(--editor-bg);
+      color: var(--text-primary);
+      border: none;
+      padding: 20px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      resize: none;
+      outline: none;
+    }
+
+    #markdown-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .divider {
+      width: 5px;
+      background-color: var(--border-primary);
+      cursor: col-resize;
+      transition: background-color 0.2s;
+      flex-shrink: 0;
+    }
+
+    .divider:hover,
+    .divider.dragging {
+      background-color: var(--accent-primary);
+    }
+
+    .preview-pane {
+      flex: 1;
+    }
+
+    .preview-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background-color: var(--preview-bg);
+    }
+
+    .menu-dropdown {
+      position: relative;
+    }
+
+    .menu-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-primary);
+      border-radius: 6px;
+      min-width: 180px;
+      box-shadow: var(--shadow-md);
+      z-index: 1000;
+      margin-top: 5px;
+    }
+
+    .menu-content.show {
+      display: block;
+    }
+
+    .menu-item {
+      padding: 10px 16px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+
+    .menu-item:hover {
+      background-color: var(--card-hover);
+      padding-left: 20px;
+    }
+
+    .menu-item:first-child {
+      border-radius: 6px 6px 0 0;
+    }
+
+    .menu-item:last-child {
+      border-radius: 0 0 6px 6px;
+    }
+
+    /* Time Widget Styles */
+    .time-widget {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      font-size: 14px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .time-widget:hover {
+      background: var(--card-hover);
+    }
+
+    .time-display {
+      font-family: 'Consolas', monospace;
+      font-weight: 500;
+    }
+
+    /* Time Modal */
+    .time-modal {
+      display: none;
+      position: absolute;
+      top: 45px;
+      right: 200px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-primary);
+      border-radius: 6px;
+      padding: 16px;
+      min-width: 250px;
+      box-shadow: var(--shadow-md);
+      z-index: 1000;
+    }
+
+    .time-modal.show {
+      display: block;
+      animation: slideDown 0.2s ease;
+    }
+
+    .time-mode-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .time-mode-btn {
+      flex: 1;
+      padding: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-primary);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .time-mode-btn.active {
+      background: var(--card-hover);
+      border-color: var(--accent-primary);
+      color: var(--text-primary);
+    }
+
+    .time-mode-btn:hover {
+      background: var(--card-hover);
+    }
+
+    .digital-clock {
+      text-align: center;
+      padding: 20px 10px;
+    }
+
+    .digital-time {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .digital-date {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .timer-inputs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .timer-input-group {
+      text-align: center;
+    }
+
+    .timer-input-group label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-bottom: 4px;
+    }
+
+    .timer-input {
+      width: 100%;
+      padding: 6px;
+      background: var(--input-bg);
+      border: 1px solid var(--border-primary);
+      border-radius: 4px;
+      color: var(--text-primary);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .timer-input:focus {
+      outline: none;
+      border-color: var(--input-focus);
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .timer-control-btn {
+      flex: 1;
+      padding: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-primary);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .timer-control-btn:hover {
+      background: var(--card-hover);
+      border-color: var(--border-primary);
+    }
+
+    .timer-control-btn.start {
+      background: var(--accent-primary);
+      border-color: var(--accent-hover);
+      color: #ffffff;
+    }
+
+    .timer-control-btn.start:hover {
+      background: var(--accent-hover);
+    }
+  </style>
+</head>
+<body>
+  <div class="editor-container">
+    <!-- Custom Title Bar -->
+    <div class="custom-titlebar">
+      <div class="titlebar-left">
+        <button class="titlebar-button" id="menu-btn" title="Settings" data-i18n="settings_title" data-i18n-attr="title">
+          <i class="fas fa-bars"></i>
+        </button>
+        <button class="titlebar-button" id="home-btn" title="Go to Home">
+          <i class="fas fa-home"></i>
+        </button>
+      </div>
+      <div class="titlebar-center">
+        <input type="text" class="file-title-input" id="file-title" placeholder="Untitled" maxlength="50">
+        <span class="autosave-indicator" id="autosave-indicator">
+          <i class="fas fa-check-circle"></i>
+          <span class="autosave-text">Saved</span>
+        </span>
+        <button class="titlebar-button" id="export-btn" title="Export File" data-i18n="export_file" data-i18n-attr="title">
+          <i class="fas fa-file-export"></i>
+        </button>
+      </div>
+      <div class="titlebar-right">
+        <!-- Time Widget -->
+        <div class="time-widget" id="time-widget">
+          <i class="fas fa-clock"></i>
+          <span class="time-display" id="time-display">00:00</span>
+        </div>
+
+        <!-- Time Modal -->
+        <div class="time-modal" id="time-modal">
+          <div class="time-mode-selector">
+            <button class="time-mode-btn active" data-mode="clock" data-i18n="clock">Clock</button>
+            <button class="time-mode-btn" data-mode="timer" data-i18n="timer">Timer</button>
+            <button class="time-mode-btn" data-mode="countdown" data-i18n="countdown">Countdown</button>
+          </div>
+          
+          <div id="clock-section" style="display: block;">
+            <div class="digital-clock">
+              <div class="digital-time" id="digital-time">00:00:00</div>
+              <div class="digital-date" id="digital-date">Monday, January 1, 2024</div>
+            </div>
+          </div>
+
+          <div id="timer-section" style="display: none;">
+            <div class="timer-inputs">
+              <div class="timer-input-group">
+                <label data-i18n="hours">Hours</label>
+                <input type="number" class="timer-input" id="timer-hours" min="0" max="23" value="0">
+              </div>
+              <div class="timer-input-group">
+                <label data-i18n="minutes">Minutes</label>
+                <input type="number" class="timer-input" id="timer-minutes" min="0" max="59" value="0">
+              </div>
+              <div class="timer-input-group">
+                <label data-i18n="seconds">Seconds</label>
+                <input type="number" class="timer-input" id="timer-seconds" min="0" max="59" value="0">
+              </div>
+            </div>
+            <div class="timer-controls">
+              <button class="timer-control-btn start" id="timer-start" data-i18n="start">Start</button>
+              <button class="timer-control-btn" id="timer-reset" data-i18n="reset">Reset</button>
+            </div>
+          </div>
+
+          <div id="countdown-section" style="display: none;">
+            <div class="timer-inputs">
+              <div class="timer-input-group">
+                <label data-i18n="hours">Hours</label>
+                <input type="number" class="timer-input" id="countdown-hours" min="0" max="23" value="0">
+              </div>
+              <div class="timer-input-group">
+                <label data-i18n="minutes">Minutes</label>
+                <input type="number" class="timer-input" id="countdown-minutes" min="0" max="59" value="25">
+              </div>
+              <div class="timer-input-group">
+                <label data-i18n="seconds">Seconds</label>
+                <input type="number" class="timer-input" id="countdown-seconds" min="0" max="59" value="0">
+              </div>
+            </div>
+            <div class="timer-controls">
+              <button class="timer-control-btn start" id="countdown-start" data-i18n="start">Start</button>
+              <button class="timer-control-btn" id="countdown-reset" data-i18n="reset">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="window-button" id="minimize-btn">
+          <i class="fas fa-window-minimize"></i>
+        </button>
+        <button class="window-button" id="maximize-btn">
+          <i class="fas fa-window-maximize"></i>
+        </button>
+        <button class="window-button close" id="close-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Editor Main Content -->
+    <div class="editor-main">
+      <div class="editor-pane" id="editor-pane">
+        <div class="pane-header">
+          <span class="pane-title" data-i18n="editor_title">Editor</span>
+        </div>
+        <textarea id="markdown-input" data-i18n="placeholder_md" data-i18n-attr="placeholder" placeholder="# Start writing your markdown here..."></textarea>
+      </div>
+      
+      <div class="divider" id="divider"></div>
+      
+      <div class="preview-pane" id="preview-pane">
+        <div class="pane-header">
+          <span class="pane-title" data-i18n="preview_title">Preview</span>
+        </div>
+        <div id="preview-output" class="preview-content"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="js/dialog.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/editor.js"></script>
+</body>
+</html>
