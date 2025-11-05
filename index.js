@@ -1,8 +1,9 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, protocol } = require('electron');
 let autoUpdater = null; // lazy-required when packaged
 const path = require('path');
 const fs = require('fs');
 const storage = require('./storage');
+const simpleGit = require('simple-git');
 
 // Production/development flag
 const isDev = !app.isPackaged;
@@ -68,11 +69,10 @@ function applyActivity(activity) {
 function setPresenceHome() {
   if (!rpcEnabled || !rpcClient || !rpcReady) return;
   const activity = {
-    details: 'Markedit',
     state: 'In the home screen',
     timestamps: { start: rpcStartTs * 1000 },
   assets: { large_image: rpcImageKey, large_text: 'Markedit' },
-    buttons: [{ label: 'Download Markedit', url: 'https://github.com/example/markedit' }]
+    buttons: [{ label: 'Download Markedit', url: 'https://github.com/naplon74/markedit' }]
   };
   lastPresence = activity;
   try { applyActivity(activity); } catch (e) { if (isDev) console.warn('[RPC] setActivity(home) failed:', e?.message || e); }
@@ -98,6 +98,7 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     frame: false,
+    icon: path.join(__dirname, 'icon.ico'),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -438,7 +439,11 @@ ipcMain.on('check-for-updates', async () => {
 
 ipcMain.on('quit-and-install', () => {
   try {
-    if (autoUpdater) autoUpdater.quitAndInstall();
+    if (autoUpdater) {
+      // quitAndInstall(isSilent, isForceRunAfter)
+      // false = show installation, true = force run after install
+      autoUpdater.quitAndInstall(false, true);
+    }
   } catch (e) {
     if (isDev) console.warn('[Updater] quitAndInstall failed:', e?.message || e);
   }
@@ -481,7 +486,115 @@ ipcMain.handle('import-file', async () => {
   return { success: false, cancelled: true };
 });
 
+// Add image to file
+ipcMain.handle('add-image', async (event, fileId) => {
+  const { filePaths } = await dialog.showOpenDialog(mainWindow, {
+    title: 'Add Image',
+    filters: [
+      { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'] }
+    ],
+    properties: ['openFile']
+  });
+
+  if (filePaths && filePaths.length > 0) {
+    try {
+      const imagePath = filePaths[0];
+      const imageExt = path.extname(imagePath);
+      const imageFileName = `${Date.now()}${imageExt}`;
+      
+      // Create images directory for this file
+      const userDataPath = app.getPath('userData');
+      const imagesDir = path.join(userDataPath, 'images', fileId);
+      if (!fs.existsSync(imagesDir)) {
+        fs.mkdirSync(imagesDir, { recursive: true });
+      }
+      
+      // Copy image to images directory
+      const destPath = path.join(imagesDir, imageFileName);
+      fs.copyFileSync(imagePath, destPath);
+      
+      // Return the custom protocol path that can be used in markdown
+      const relativePath = `app-images://images/${fileId}/${imageFileName}`;
+      return { success: true, path: relativePath, fileName: path.basename(imagePath, imageExt) };
+    } catch (error) {
+      if (isDev) console.error('Error adding image:', error);
+      return { success: false, error: error.message };
+    }
+  }
+  
+  return { success: false, cancelled: true };
+});
+
+// Git Integration
+const gitRepos = new Map(); // Store git instances by repo URL
+
+ipcMain.handle('git-connect', async (event, repoUrl) => {
+  try {
+    // Create a temporary directory for the repo
+    const userDataPath = app.getPath('userData');
+    const gitDir = path.join(userDataPath, 'git-repos', Buffer.from(repoUrl).toString('base64').substring(0, 20));
+    
+    if (!fs.existsSync(gitDir)) {
+      fs.mkdirSync(gitDir, { recursive: true });
+    }
+
+    const git = simpleGit(gitDir);
+    
+    // Check if already cloned
+    const isRepo = await git.checkIsRepo();
+    if (!isRepo) {
+      // Clone the repository
+      await git.clone(repoUrl, gitDir);
+    } else {
+      // Pull latest changes
+      await git.pull();
+    }
+    
+    gitRepos.set(repoUrl, { git, dir: gitDir });
+    
+    // Get list of markdown files
+    const files = fs.readdirSync(gitDir).filter(f => f.endsWith('.md'));
+    
+    return { success: true, files, message: 'Connected successfully!' };
+  } catch (error) {
+    if (isDev) console.error('Git connect error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('git-push', async (event, { repoUrl, filename, content, commitMsg }) => {
+  try {
+    const repoData = gitRepos.get(repoUrl);
+    if (!repoData) {
+      return { success: false, error: 'Repository not connected. Please connect first.' };
+    }
+
+    const { git, dir } = repoData;
+    const filePath = path.join(dir, filename);
+    
+    // Write the file
+    fs.writeFileSync(filePath, content, 'utf8');
+    
+    // Git add, commit, push
+    await git.add(filename);
+    await git.commit(commitMsg || 'Update from Markedit');
+    await git.push();
+    
+    return { success: true, message: `Successfully pushed ${filename} to GitHub!` };
+  } catch (error) {
+    if (isDev) console.error('Git push error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 app.whenReady().then(() => {
+  // Register custom protocol to serve local images
+  protocol.registerFileProtocol('app-images', (request, callback) => {
+    const url = request.url.replace('app-images://', '');
+    const imagePath = path.join(app.getPath('userData'), url);
+    callback({ path: imagePath });
+  });
+
   createWindow();
   initAutoUpdater();
 

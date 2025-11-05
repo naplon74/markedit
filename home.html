@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
   <script>
     // Load theme before page renders
@@ -766,12 +766,7 @@
       updateMessage.textContent = 'A new version is being downloaded in the background.';
       updateNotification.classList.add('show');
       updateProgress.classList.remove('show');
-      updateActions.innerHTML = '<button class="update-btn secondary" id="update-dismiss">Dismiss</button>';
-      
-      // Re-attach dismiss handler
-      document.getElementById('update-dismiss')?.addEventListener('click', () => {
-        updateNotification.classList.remove('show');
-      });
+      updateActions.innerHTML = ''; // No buttons during download
     });
 
     // Download progress

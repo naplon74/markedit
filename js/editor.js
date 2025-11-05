@@ -3,10 +3,11 @@ const { ipcRenderer } = require('electron');
 
 // Configure marked options
 marked.setOptions({
-  breaks: true,
+  breaks: false, // Don't convert single line breaks to <br>
   gfm: true,
   headerIds: true,
-  mangle: false
+  mangle: false,
+  pedantic: false
 });
 
 // Global variables
@@ -76,7 +77,7 @@ function initializeNavbar() {
   if (homeBtn) {
     homeBtn.addEventListener('click', async () => {
       if (hasUnsavedChanges && !isFileEmpty()) {
-  const result = await window.dialog.confirmSave('You have unsaved changes. Do you want to save before leaving?');
+        const result = await window.dialog.confirmSave('You have unsaved changes. Do you want to save before leaving?');
         if (result.action === 'save') {
           await autoSave();
           hasUnsavedChanges = false;
@@ -100,6 +101,39 @@ function initializeNavbar() {
         dialog.alert('Export Success', `File exported successfully to:\n${result.path}`);
       } else if (!result.cancelled) {
         dialog.alert('Export Failed', `Export failed: ${result.error || 'Unknown error'}`);
+      }
+    });
+  }
+
+  // Add Image button
+  const imageBtn = document.getElementById('image-btn');
+  if (imageBtn) {
+    imageBtn.addEventListener('click', async () => {
+      if (!currentFileId) {
+        await window.dialog.alert('No File', 'Please create or open a file first.');
+        return;
+      }
+      
+      const result = await ipcRenderer.invoke('add-image', currentFileId);
+      if (result.success) {
+        // Insert markdown image syntax at cursor position
+        const imageName = result.fileName || 'image';
+        const imageMarkdown = `![${imageName}](${result.path})`;
+        
+        const start = markdownInput.selectionStart;
+        const end = markdownInput.selectionEnd;
+        const value = markdownInput.value;
+        
+        markdownInput.value = value.substring(0, start) + imageMarkdown + value.substring(end);
+        markdownInput.selectionStart = markdownInput.selectionEnd = start + imageMarkdown.length;
+        
+        // Trigger preview update
+        updatePreview();
+        hasUnsavedChanges = true;
+        
+        await window.dialog.alert('Image Added', `Image added successfully!\n\nMarkdown: ${imageMarkdown}`);
+      } else if (!result.cancelled) {
+        await window.dialog.alert('Error', `Failed to add image: ${result.error || 'Unknown error'}`);
       }
     });
   }
@@ -156,102 +190,102 @@ function initializeApp() {
     autoSaveTimer = setTimeout(autoSave, 60000); // 60 seconds
   });
 
-// Save title when changed
-fileTitleInput.addEventListener('blur', async () => {
-  if (!currentFileId || !currentFileData) return;
+  // Save title when changed
+  fileTitleInput.addEventListener('blur', async () => {
+    if (!currentFileId || !currentFileData) return;
   
-  currentFileData.title = fileTitleInput.value || 'Untitled';
-  await ipcRenderer.invoke('save-file', currentFileData);
-  ipcRenderer.send('rpc-set-editing', currentFileData.title);
-});
+    currentFileData.title = fileTitleInput.value || 'Untitled';
+    await ipcRenderer.invoke('save-file', currentFileData);
+    ipcRenderer.send('rpc-set-editing', currentFileData.title);
+  });
 
-// Clear placeholder on focus for easier editing
-fileTitleInput.addEventListener('focus', (e) => {
-  if (e.target.value === 'Untitled') {
-    e.target.select();
-  }
-});
+  // Clear placeholder on focus for easier editing
+  fileTitleInput.addEventListener('focus', (e) => {
+    if (e.target.value === 'Untitled') {
+      e.target.select();
+    }
+  });
 
-// Handle tab key in textarea
-markdownInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    const start = markdownInput.selectionStart;
-    const end = markdownInput.selectionEnd;
-    const value = markdownInput.value;
+  // Handle tab key in textarea
+  markdownInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = markdownInput.selectionStart;
+      const end = markdownInput.selectionEnd;
+      const value = markdownInput.value;
     
-    // Insert tab character
-    markdownInput.value = value.substring(0, start) + '  ' + value.substring(end);
+      // Insert tab character
+      markdownInput.value = value.substring(0, start) + '  ' + value.substring(end);
     
-    // Move cursor
-    markdownInput.selectionStart = markdownInput.selectionEnd = start + 2;
+      // Move cursor
+      markdownInput.selectionStart = markdownInput.selectionEnd = start + 2;
     
-    // Update preview
-    updatePreview();
-  }
-});
+      // Update preview
+      updatePreview();
+    }
+  });
 
-// Resizable divider functionality
-const divider = document.getElementById('divider');
-const editorPane = document.getElementById('editor-pane');
-const previewPane = document.getElementById('preview-pane');
-const editorMain = document.querySelector('.editor-main');
+  // Resizable divider functionality
+  const divider = document.getElementById('divider');
+  const editorPane = document.getElementById('editor-pane');
+  const previewPane = document.getElementById('preview-pane');
+  const editorMain = document.querySelector('.editor-main');
 
-let isDragging = false;
+  let isDragging = false;
 
-divider.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  divider.classList.add('dragging');
-  document.body.style.cursor = 'col-resize';
-  document.body.style.userSelect = 'none';
-});
+  divider.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    divider.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
 
-document.addEventListener('mousemove', (e) => {
-  if (!isDragging) return;
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
 
-  const containerRect = editorMain.getBoundingClientRect();
-  const containerWidth = containerRect.width;
-  const mouseX = e.clientX - containerRect.left;
+    const containerRect = editorMain.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    const mouseX = e.clientX - containerRect.left;
   
-  // Calculate percentage (between 20% and 80%)
-  let percentage = (mouseX / containerWidth) * 100;
-  percentage = Math.max(20, Math.min(80, percentage));
+    // Calculate percentage (between 20% and 80%)
+    let percentage = (mouseX / containerWidth) * 100;
+    percentage = Math.max(20, Math.min(80, percentage));
   
-  editorPane.style.flex = `0 0 ${percentage}%`;
-});
+    editorPane.style.flex = `0 0 ${percentage}%`;
+  });
 
-document.addEventListener('mouseup', () => {
-  if (isDragging) {
-    isDragging = false;
-    divider.classList.remove('dragging');
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  }
-});
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      divider.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
 
-// Synchronize scrolling
-let isEditorScrolling = false;
-let isPreviewScrolling = false;
+  // Synchronize scrolling
+  let isEditorScrolling = false;
+  let isPreviewScrolling = false;
 
-markdownInput.addEventListener('scroll', () => {
-  if (!isPreviewScrolling) {
-    isEditorScrolling = true;
-    const scrollPercentage = markdownInput.scrollTop / (markdownInput.scrollHeight - markdownInput.clientHeight);
-    previewOutput.scrollTop = scrollPercentage * (previewOutput.scrollHeight - previewOutput.clientHeight);
-    setTimeout(() => isEditorScrolling = false, 100);
-  }
-});
+  markdownInput.addEventListener('scroll', () => {
+    if (!isPreviewScrolling) {
+      isEditorScrolling = true;
+      const scrollPercentage = markdownInput.scrollTop / (markdownInput.scrollHeight - markdownInput.clientHeight);
+      previewOutput.scrollTop = scrollPercentage * (previewOutput.scrollHeight - previewOutput.clientHeight);
+      setTimeout(() => isEditorScrolling = false, 100);
+    }
+  });
 
-previewOutput.addEventListener('scroll', () => {
-  if (!isEditorScrolling) {
-    isPreviewScrolling = true;
-    const scrollPercentage = previewOutput.scrollTop / (previewOutput.scrollHeight - previewOutput.clientHeight);
-    markdownInput.scrollTop = scrollPercentage * (markdownInput.scrollHeight - markdownInput.clientHeight);
-    setTimeout(() => isPreviewScrolling = false, 100);
-  }
-});
+  previewOutput.addEventListener('scroll', () => {
+    if (!isEditorScrolling) {
+      isPreviewScrolling = true;
+      const scrollPercentage = previewOutput.scrollTop / (previewOutput.scrollHeight - previewOutput.clientHeight);
+      markdownInput.scrollTop = scrollPercentage * (markdownInput.scrollHeight - markdownInput.clientHeight);
+      setTimeout(() => isPreviewScrolling = false, 100);
+    }
+  });
 
-// Warn before closing window if there are unsaved changes
+  // Warn before closing window if there are unsaved changes
   window.addEventListener('beforeunload', (e) => {
     if (hasUnsavedChanges) {
       e.returnValue = true;
@@ -633,13 +667,150 @@ ipcRenderer.on('request-close', async () => {
   }
 });
 
+// Git Integration
+let currentRepoUrl = '';
+let connectedFiles = [];
+let gitEnabled = false;
+
+// Check if Git integration is enabled in settings
+async function initGitIntegration() {
+  try {
+    const settings = await ipcRenderer.invoke('load-settings');
+    gitEnabled = settings && settings.gitEnabled ? true : false;
+    
+    const gitPanel = document.getElementById('git-panel');
+    if (gitPanel) {
+      gitPanel.style.display = gitEnabled ? 'block' : 'none';
+    }
+  } catch (e) {
+    console.error('Failed to load Git settings:', e);
+  }
+}
+
+// Toggle Git Panel
+const gitToggle = document.getElementById('git-toggle');
+const gitContent = document.getElementById('git-content');
+const gitHeader = document.querySelector('.git-header');
+
+if (gitHeader && gitToggle && gitContent) {
+  gitHeader.addEventListener('click', (e) => {
+    gitContent.classList.toggle('collapsed');
+    gitToggle.classList.toggle('collapsed');
+  });
+}
+
+// Connect to Git Repository
+const gitConnectBtn = document.getElementById('git-connect-btn');
+const gitRepoUrl = document.getElementById('git-repo-url');
+const gitFileSection = document.getElementById('git-file-section');
+const gitRepoSection = document.getElementById('git-repo-section');
+const gitConnectedRepo = document.getElementById('git-connected-repo');
+const gitDisconnectBtn = document.getElementById('git-disconnect-btn');
+
+if (gitConnectBtn && gitRepoUrl) {
+  gitConnectBtn.addEventListener('click', async () => {
+    const repoUrl = gitRepoUrl.value.trim();
+    if (!repoUrl) {
+      await window.dialog.alert('Missing URL', 'Please enter a repository URL');
+      return;
+    }
+
+    gitConnectBtn.disabled = true;
+    gitConnectBtn.textContent = 'Connecting...';
+    
+    const result = await ipcRenderer.invoke('git-connect', repoUrl);
+    
+    if (result.success) {
+      currentRepoUrl = repoUrl;
+      connectedFiles = result.files || [];
+      
+      // Hide repo section, show file section
+      if (gitRepoSection) gitRepoSection.style.display = 'none';
+      if (gitFileSection) gitFileSection.style.display = 'flex';
+      if (gitConnectedRepo) {
+        const shortUrl = repoUrl.replace('https://github.com/', '').replace('.git', '');
+        gitConnectedRepo.textContent = shortUrl;
+      }
+      
+      await window.dialog.alert('Connected', result.message);
+    } else {
+      await window.dialog.alert('Connection Failed', `Error: ${result.error}`);
+    }
+    
+    gitConnectBtn.disabled = false;
+    gitConnectBtn.textContent = 'Connect';
+  });
+}
+
+// Disconnect from repository
+if (gitDisconnectBtn) {
+  gitDisconnectBtn.addEventListener('click', () => {
+    currentRepoUrl = '';
+    connectedFiles = [];
+    if (gitRepoSection) gitRepoSection.style.display = 'grid';
+    if (gitFileSection) gitFileSection.style.display = 'none';
+    if (gitRepoUrl) gitRepoUrl.value = '';
+  });
+}
+
+// Push to GitHub
+const gitPushBtn = document.getElementById('git-push-btn');
+const gitFilename = document.getElementById('git-filename');
+const gitCommitMsg = document.getElementById('git-commit-msg');
+
+if (gitPushBtn && gitFilename && gitCommitMsg) {
+  gitPushBtn.addEventListener('click', async () => {
+    if (!currentRepoUrl) {
+      await window.dialog.alert('Not Connected', 'Please connect to a repository first');
+      return;
+    }
+
+    const filename = gitFilename.value.trim();
+    const commitMsg = gitCommitMsg.value.trim();
+
+    if (!filename) {
+      await window.dialog.alert('Missing Filename', 'Please enter a filename');
+      return;
+    }
+
+    if (!markdownInput) {
+      await window.dialog.alert('No Content', 'No content to push');
+      return;
+    }
+
+    gitPushBtn.disabled = true;
+    gitPushBtn.textContent = 'Pushing...';
+    
+    const result = await ipcRenderer.invoke('git-push', {
+      repoUrl: currentRepoUrl,
+      filename: filename.endsWith('.md') ? filename : `${filename}.md`,
+      content: markdownInput.value,
+      commitMsg: commitMsg || 'Update from Markedit'
+    });
+    
+    if (result.success) {
+      await window.dialog.alert('Success', result.message);
+      // Clear commit message after successful push
+      gitCommitMsg.value = '';
+    } else {
+      await window.dialog.alert('Push Failed', `Error: ${result.error}`);
+    }
+    
+    gitPushBtn.disabled = false;
+    gitPushBtn.textContent = 'Push to GitHub';
+  });
+}
+
 // Run initialization when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => { 
-    initializeApp(); 
+    initializeApp();
+    initGitIntegration();
     if (window.i18n) i18n.init().catch(e => console.warn('i18n init failed:', e)); 
   });
 } else {
   initializeApp();
+  initGitIntegration();
   if (window.i18n) i18n.init().catch(e => console.warn('i18n init failed:', e));
 }
+

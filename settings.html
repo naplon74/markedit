@@ -16,7 +16,7 @@
       document.head.appendChild(themeLink);
     })();
   </script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
   <style>
     /* Titlebar + menu (match Home/Editor styles) */
     .custom-titlebar {
@@ -513,6 +513,24 @@
     </div>
 
     <div class="setting-section">
+      <h2><i class="fab fa-github"></i> <span data-i18n="git_section">Git Integration</span></h2>
+      <div class="setting-item">
+        <div>
+          <div class="setting-label" data-i18n="git_enable_label">Enable Git Integration</div>
+          <div class="setting-description" data-i18n="git_enable_desc">Show Git panel in the editor to push your markdown files to GitHub repositories.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="git-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="save-indicator" id="git-save-indicator">
+        <i class="fas fa-check-circle"></i>
+        <span data-i18n="git_saved">Git integration setting saved!</span>
+      </div>
+    </div>
+
+    <div class="setting-section">
       <h2><i class="fas fa-skull-crossbones" style="color: var(--danger, #e81123);"></i> <span data-i18n="danger_section">Danger zone</span></h2>
       <div class="setting-item" style="border: 1px solid var(--border-primary);">
         <div>
@@ -682,6 +700,26 @@
         });
       } catch (e) {
         console.error('Failed to initialize RPC toggle', e);
+      }
+    })();
+
+    // Initialize Git toggle
+    (async function initGitToggle() {
+      try {
+        const settings = await ipcRenderer.invoke('load-settings');
+        const gitToggle = document.getElementById('git-toggle');
+        const gitIndicator = document.getElementById('git-save-indicator');
+        const enabled = settings && Object.prototype.hasOwnProperty.call(settings, 'gitEnabled') ? settings.gitEnabled : false;
+        gitToggle.checked = !!enabled;
+        gitToggle.addEventListener('change', async () => {
+          const updated = await ipcRenderer.invoke('load-settings');
+          updated.gitEnabled = gitToggle.checked;
+          await ipcRenderer.invoke('save-settings', updated);
+          gitIndicator.classList.add('show');
+          setTimeout(() => gitIndicator.classList.remove('show'), 2000);
+        });
+      } catch (e) {
+        console.error('Failed to initialize Git toggle', e);
       }
     })();
 

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Editor</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
   <script>
     // Load theme before page renders
@@ -420,6 +420,243 @@
     .timer-control-btn.start:hover {
       background: var(--accent-hover);
     }
+
+    /* Git Integration Panel */
+    .git-panel {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-primary);
+      position: relative;
+      z-index: 10;
+    }
+
+    .git-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-tertiary);
+      user-select: none;
+      border-bottom: 1px solid var(--border-primary);
+    }
+
+    .git-header:hover {
+      background: var(--card-hover);
+    }
+
+    .git-header i.fa-github {
+      font-size: 16px;
+      color: var(--accent-primary);
+    }
+
+    .git-header span {
+      flex: 1;
+    }
+
+    /* Git Enable Toggle Switch */
+    .git-enable-switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+      margin-left: auto;
+      margin-right: 8px;
+    }
+
+    .git-enable-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .git-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-tertiary);
+      transition: 0.3s;
+      border-radius: 20px;
+      border: 1px solid var(--border-primary);
+    }
+
+    .git-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+      background-color: var(--text-secondary);
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .git-enable-switch input:checked + .git-slider {
+      background-color: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    .git-enable-switch input:checked + .git-slider:before {
+      transform: translateX(20px);
+      background-color: white;
+    }
+
+    .git-toggle {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px 8px;
+      transition: transform 0.3s ease;
+    }
+
+    .git-toggle.collapsed {
+      transform: rotate(180deg);
+    }
+
+    .git-content {
+      padding: 16px;
+      max-height: 250px;
+      overflow-y: auto;
+      transition: max-height 0.3s ease;
+    }
+
+    .git-content.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .git-content.collapsed {
+      max-height: 0;
+      padding: 0 16px;
+      overflow: hidden;
+    }
+
+    .git-repo-section,
+    .git-file-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .git-repo-section {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .git-repo-section label {
+      white-space: nowrap;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .git-repo-section input,
+    .git-file-section input {
+      padding: 8px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-primary);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+
+    .git-repo-section input:focus,
+    .git-file-section input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    .git-btn {
+      padding: 8px 16px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      border-radius: 4px;
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .git-btn:hover {
+      background: var(--card-hover);
+      border-color: var(--accent-primary);
+    }
+
+    .git-btn-primary {
+      background: var(--accent-primary);
+      color: #ffffff;
+      border-color: var(--accent-primary);
+    }
+
+    .git-btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .git-connected-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(46, 204, 113, 0.1);
+      border: 1px solid rgba(46, 204, 113, 0.3);
+      border-radius: 4px;
+      margin-bottom: 12px;
+      color: #2ecc71;
+      font-size: 13px;
+    }
+
+    .git-connected-info i {
+      font-size: 14px;
+    }
+
+    .git-btn-small {
+      margin-left: auto;
+      padding: 4px 12px;
+      background: transparent;
+      border: 1px solid rgba(46, 204, 113, 0.3);
+      border-radius: 4px;
+      color: #2ecc71;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .git-btn-small:hover {
+      background: rgba(46, 204, 113, 0.2);
+    }
+
+    .git-status {
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+      display: none;
+    }
+
+    .git-status.show {
+      display: block;
+    }
+
+    .git-status.success {
+      background: rgba(46, 204, 113, 0.1);
+      color: #2ecc71;
+      border: 1px solid rgba(46, 204, 113, 0.3);
+    }
+
+    .git-status.error {
+      background: rgba(231, 76, 60, 0.1);
+      color: #e74c3c;
+      border: 1px solid rgba(231, 76, 60, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -442,6 +679,9 @@
         </span>
         <button class="titlebar-button" id="export-btn" title="Export File" data-i18n="export_file" data-i18n-attr="title">
           <i class="fas fa-file-export"></i>
+        </button>
+        <button class="titlebar-button" id="image-btn" title="Add Image" data-i18n="add_image" data-i18n-attr="title">
+          <i class="fas fa-image"></i>
         </button>
       </div>
       <div class="titlebar-right">
@@ -537,6 +777,36 @@
           <span class="pane-title" data-i18n="preview_title">Preview</span>
         </div>
         <div id="preview-output" class="preview-content"></div>
+      </div>
+    </div>
+
+    <!-- Git Integration Panel -->
+    <div class="git-panel" id="git-panel" style="display: none;">
+      <div class="git-header">
+        <i class="fab fa-github"></i>
+        <span data-i18n="git_integration">Git Integration</span>
+        <button class="git-toggle" id="git-toggle">
+          <i class="fas fa-chevron-up"></i>
+        </button>
+      </div>
+      <div class="git-content" id="git-content">
+        <div class="git-repo-section" id="git-repo-section">
+          <label data-i18n="git_repo_url">Repository URL:</label>
+          <input type="text" id="git-repo-url" placeholder="https://github.com/username/repo.git">
+          <button id="git-connect-btn" class="git-btn" data-i18n="git_connect">Connect</button>
+        </div>
+        <div class="git-file-section" id="git-file-section" style="display: none;">
+          <div class="git-connected-info">
+            <i class="fas fa-check-circle"></i>
+            <span id="git-connected-repo"></span>
+            <button id="git-disconnect-btn" class="git-btn-small" data-i18n="git_disconnect">Disconnect</button>
+          </div>
+          <label data-i18n="git_filename">Filename in repo:</label>
+          <input type="text" id="git-filename" placeholder="README.md">
+          <label data-i18n="git_commit_msg">Commit message:</label>
+          <input type="text" id="git-commit-msg" placeholder="Update from Markedit">
+          <button id="git-push-btn" class="git-btn git-btn-primary" data-i18n="git_push">Push to GitHub</button>
+        </div>
       </div>
     </div>
   </div>

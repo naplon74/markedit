@@ -4,10 +4,10 @@
 
 ![Markedit Logo](icon.ico)
 
-**A modern, feature-rich markdown editor with live preview and Discord Rich Presence**
+**A modern, feature-rich markdown editor with live preview, Git integration, image caching, and Discord Rich Presence**
 
 [![Version](https://img.shields.io/github/v/release/naplon74/markedit)](https://github.com/naplon74/markedit/releases)
-[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-ISC-blue.svg)](package.json)
 
 [Download Latest Release](https://github.com/naplon74/markedit/releases/latest) • [Report Bug](https://github.com/naplon74/markedit/issues) • [Request Feature](https://github.com/naplon74/markedit/issues)
 
@@ -15,51 +15,51 @@
 
 ---
 
-> [!IMPORTANT]
-> Exporting PDF requires an internet connection
+
 
 ## ✨ Features
 
 ### 📝 **Powerful Markdown Editing**
-- Real-time live preview as you type
-- Syntax highlighting for code blocks
-- Support for GitHub Flavored Markdown (GFM)
+- Real-time live preview (150ms debounced for smooth typing)
+- GitHub Flavored Markdown (GFM)
+- Optional raw HTML support in preview (disabled sanitization)
 - Resizable editor and preview panes
-- Auto-save every 60 seconds with visual indicator
+- Auto-save with visual indicator
 
 ### 🎨 **Customizable Themes**
-- **6 Beautiful Themes**: Dark, Light, Green Forest, Deep Ocean, Sunset, Cyberpunk
-- Live theme switching
-- Persistent theme selection across sessions
+- Multiple built‑in themes (Dark, Light, Green Forest, Deep Ocean, Sunset, Cyberpunk)
+- Live theme switching with persistence
 
 ### 🌍 **Multi-Language Support**
-- **4 Languages**: English, French, Spanish, German
-- Seamless language switching
-- Localized UI elements and messages
+- English, French, Spanish, German
+- Seamless language switching with localized UI
 
 ### 📁 **File Management**
 - Create, import, and export markdown files
 - Recent files quick access
 - File rename and delete with confirmation
-- Export to multiple formats: `.md`, `.txt`, `.html`, `.pdf`
+- Export to `.md`, `.txt`, and `.html` (PDF via system print dialog)
 
 ### 🎮 **Discord Rich Presence**
 - Show what you're working on in Discord
-- Display current file being edited
+- Displays the current file being edited
 - Toggle on/off in settings
-- Custom presence messages
 
 ### 🔄 **Automatic Updates**
-- Auto-check for updates on startup
+- Checks automatically a few seconds after startup
 - Background download with progress indicator
-- One-click install when ready
-- Seamless update experience
+- When ready, you’ll see only two options: Restart Now or Later (no dismiss)
+- Restart Now installs and relaunches the app automatically
 
-### ⏱️ **Built-in Time Tools**
-- **Clock**: Digital time display
-- **Timer**: Count up timer with start/stop/reset
-- **Countdown**: Set custom countdown timers
-- Alarm notifications when countdown completes
+### 🖼️ **Offline Images & Icons**
+- Add images via the toolbar button; files are cached per document inside the app’s data folder
+- Images render via a secure custom protocol: `app-images://...`
+- Font Awesome is bundled locally for reliable offline icons
+
+### 🔧 **Git Integration (optional)**
+- Toggle Git features in Settings
+- Connect a repository, enter commit message, and push directly from the editor footer
+- Smart UI: hide repo connect fields after successful connection; quick commit/push for the open file
 
 ### 🎯 **Modern UI/UX**
 - Frameless custom window design
@@ -72,10 +72,10 @@
 
 ## 🚀 Getting Started
 
-### Installation
+### Installation (Windows)
 
 1. **Download the latest installer** from the [Releases page](https://github.com/naplon74/markedit/releases/latest)
-2. **Run** `Markedit-x.x.x-Setup.exe`
+2. **Run** `Markedit-x.y.z-Setup.exe`
 3. **Follow** the onboarding wizard to set your name, language, and theme
 4. **Start writing!**
 
@@ -104,12 +104,12 @@ On first launch, Markedit will guide you through a quick setup:
 
 ### Exporting Files
 - Click the **export icon** in the editor toolbar
-- Choose your format: Markdown, Text, HTML, or PDF
-- Select save location
+- Choose your format: Markdown, Text, or HTML
+- For PDF, use your system’s Print to PDF from the browser dialog
 
 ### Keyboard Shortcuts
-- **Tab** in editor: Insert 2 spaces (for indentation)
-- **Ctrl+S**: Manual save (though auto-save has you covered!)
+- **Tab** in editor: Insert 2 spaces
+- **Ctrl+S**: Manual save
 
 ### Customizing Your Experience
 
@@ -127,6 +127,16 @@ On first launch, Markedit will guide you through a quick setup:
 1. Open **Settings**
 2. Toggle **"Enable Discord RPC"**
 3. Your Discord status will show what you're editing
+
+#### Enable/Disable Git Integration
+1. Open **Settings**
+2. Toggle **"Enable Git Integration"**
+3. When enabled, a Git panel appears at the bottom of the editor
+
+#### Add Images
+1. Click the **image button** in the toolbar
+2. Select a local image; it will be copied into the app cache per file
+3. The editor inserts a markdown reference using `app-images://...`
 
 ---
 
@@ -150,15 +160,19 @@ npm install
 npm start
 ```
 
-### Building
+### Building (Windows)
 
-```bash
-# Build Windows installer and latest.yml
+```powershell
+# Build Windows NSIS installer (x64) and update artifacts (latest.yml, blockmap)
 npm run dist
 
-# Build unpacked directory (for testing)
+# Build unpacked directory (for testing only)
 npm run pack
 ```
+
+Output will be placed in the `dist/` folder as a single installer:
+- `Markedit-x.y.z-Setup.exe`
+- Alongside update metadata: `latest.yml` and `.blockmap`
 
 ### Project Structure
 
@@ -198,8 +212,9 @@ markedit/
 ## 📦 Technologies Used
 
 - **Electron** - Desktop application framework
-- **Marked.js** - Markdown parser and renderer
-- **Discord RPC** - Rich presence integration
+- **Marked** - Markdown parser and renderer
+- **Font Awesome (bundled)** - Offline icons
+- **simple-git** - Git operations
 - **electron-builder** - Build and packaging
 - **electron-updater** - Automatic updates
 
@@ -207,20 +222,22 @@ markedit/
 
 ## 🔄 Auto-Updates
 
-Markedit automatically checks for updates when you launch the app. When a new version is available:
+Markedit checks for updates a few seconds after startup and downloads them automatically. When the download completes, you’ll get:
 
-1. A notification appears on the home screen
-2. The update downloads in the background
-3. Progress is shown with a visual indicator
-4. Click **"Restart Now"** to install, or **"Later"** to postpone
-5. Updates install on next app quit if you choose "Later"
+1. An update banner with progress during download
+2. Two choices once ready: **Restart Now** or **Later** (no dismiss)
+3. Restart Now installs and relaunches the app automatically
+4. Later will install on the next quit
+
+For maintainers: releases are published to GitHub; ensure your CI or local environment provides `GH_TOKEN` when running `npm run dist` to upload artifacts.
 
 ---
 
-## 🐛 Known Issues
+## 🐛 Known Issues & Troubleshooting
 
-- PDF export requires internet connection for proper rendering
 - Discord RPC may take a few seconds to connect on first launch
+- If you previously saw duplicate installers/artifacts, the build now targets only NSIS x64 to produce a single `.exe` and its `.blockmap`
+- If the app didn’t relaunch after update in older versions, this has been improved; use the latest version for a smoother restart
 
 ---
 
@@ -261,7 +278,6 @@ If you like Markedit, give it a ⭐️ on GitHub!
 - [ ] Custom keyboard shortcuts
 - [ ] Plugin system
 - [ ] Vim mode
-- [ ] Git integration
 
 ---
 
