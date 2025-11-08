@@ -15,6 +15,21 @@
 
 ---
 
+## 🆕 Recent Updates
+
+### Latest Features (November 2025)
+- ⚡ **Command Palette** (Ctrl+Shift+P) with word wrap, timestamps, and task list utilities
+- 🎨 **Revamped Settings** with organized sections and comprehensive changelog
+- 📁 **Drag & Drop Import** - Drop .md files anywhere on the home screen
+- 🗑️ **Auto-Delete Empty Files** - No more clutter from untitled files
+- 📝 **Better Markdown Rendering** - Single-line breaks now work correctly
+- ✨ **Smart Editor** - Auto-exit lists, image spacing, and more
+- 🔍 **File Deduplication** - Won't import the same external file twice
+
+[See full changelog in Settings →](#)
+
+---
+
 
 
 ## ✨ Features
@@ -22,13 +37,16 @@
 ### 📝 **Powerful Markdown Editing**
 - Real-time live preview (150ms debounced for smooth typing)
 - GitHub Flavored Markdown (GFM)
+- Single-line breaks render correctly (no more double-Enter needed)
 - Optional raw HTML support in preview (disabled sanitization)
 - Resizable editor and preview panes
 - Auto-save with visual indicator
+- Smart block spacing for lists and images
 
 ### 🎨 **Customizable Themes**
 - Multiple built‑in themes (Dark, Light, Green Forest, Deep Ocean, Sunset, Cyberpunk)
 - Live theme switching with persistence
+- Word wrap toggle (persisted per session)
 
 ### 🌍 **Multi-Language Support**
 - English, French, Spanish, German
@@ -39,6 +57,10 @@
 - Recent files quick access
 - File rename and delete with confirmation
 - Export to `.md`, `.txt`, and `.html` (PDF via system print dialog)
+- **Drag & drop** .md files onto home screen to import
+- Auto-delete empty untitled files (no clutter)
+- External file deduplication (won't import the same file twice)
+- Smart file caching with metadata tracking
 
 ### 🎮 **Discord Rich Presence**
 - Show what you're working on in Discord
@@ -67,6 +89,20 @@
 - Intuitive onboarding experience
 - Custom dialog system
 - Responsive layout
+- Streamlined settings with organized sections
+
+### ⚡ **Command Palette** (Ctrl+Shift+P)
+- **Toggle Word Wrap** - Soft wrap long lines (persisted)
+- **Insert Timestamp** - Insert current date/time (YYYY-MM-DD HH:mm)
+- **Convert to Task List** - Transform selected lines to `- [ ]` format
+- **Toggle Task Checkbox** - Switch between `[ ]` and `[x]`
+- Quick access to all editor commands
+
+### ✨ **Smart Editor Features**
+- Auto-exit lists with blank line (Enter on empty list item)
+- Images automatically wrapped with newlines for clean spacing
+- Smart paste detects image URLs and auto-formats them
+- Enhanced error reporting for file operations
 
 ---
 
@@ -96,20 +132,30 @@ On first launch, Markedit will guide you through a quick setup:
 - Click the **"New File"** button on the home screen
 - Start typing in the editor pane
 - Your file auto-saves every minute
+- Empty untitled files are automatically deleted when you navigate away
 
 ### Importing Existing Files
-- Click **"Import File"** on the home screen
-- Select a `.md` or `.txt` file
-- The file opens in the editor
+- **Drag & drop** any `.md` file onto the home screen
+- Or click **"Import File"** to browse for a file
+- Duplicate imports are automatically detected and prevented
+- Files are cached locally with metadata tracking
 
 ### Exporting Files
 - Click the **export icon** in the editor toolbar
 - Choose your format: Markdown, Text, or HTML
-- For PDF, use your system’s Print to PDF from the browser dialog
+- For PDF, use your system's Print to PDF from the browser dialog
+
+### Command Palette (Ctrl+Shift+P)
+- **Toggle Word Wrap**: Enable/disable soft wrapping for long lines
+- **Insert Timestamp**: Add current date/time at cursor position
+- **Convert to Task List**: Transform selected lines into checkboxes
+- **Toggle Task Checkbox**: Switch checkboxes between checked/unchecked
 
 ### Keyboard Shortcuts
-- **Tab** in editor: Insert 2 spaces
+- **Ctrl+Shift+P**: Open command palette
 - **Ctrl+S**: Manual save
+- **Tab** in editor: Insert 2 spaces
+- **Enter** on empty list item: Exit list with clean spacing
 
 ### Customizing Your Experience
 
@@ -137,6 +183,20 @@ On first launch, Markedit will guide you through a quick setup:
 1. Click the **image button** in the toolbar
 2. Select a local image; it will be copied into the app cache per file
 3. The editor inserts a markdown reference using `app-images://...`
+4. Images are automatically wrapped with newlines for proper spacing
+
+### Settings & Customization
+
+#### Organized Settings Sections
+- **Appearance**: Theme selection with live preview
+- **Language & Localization**: Choose your preferred language
+- **Integrations**: Discord RPC and Git toggle
+- **Changelog**: View all recent features and improvements
+- **Danger Zone**: Reset app or delete all cached data
+
+#### Danger Zone
+- **Reset Application**: Clear settings and return to onboarding (files preserved)
+- **Delete ALL Data**: Nuclear option - removes all cached files, drafts, images, and git repos
 
 ---
 
@@ -236,8 +296,10 @@ For maintainers: releases are published to GitHub; ensure your CI or local envir
 ## 🐛 Known Issues & Troubleshooting
 
 - Discord RPC may take a few seconds to connect on first launch
+- Drag-dropped files create new entries each time (no path-based deduplication due to browser security)
+- DevTools are currently enabled for debugging (will be toggled off in production builds)
 - If you previously saw duplicate installers/artifacts, the build now targets only NSIS x64 to produce a single `.exe` and its `.blockmap`
-- If the app didn’t relaunch after update in older versions, this has been improved; use the latest version for a smoother restart
+- If the app didn't relaunch after update in older versions, this has been improved; use the latest version for a smoother restart
 
 ---
 
@@ -274,10 +336,26 @@ If you like Markedit, give it a ⭐️ on GitHub!
 
 ## 🔮 Roadmap
 
-- [ ] More export formats (DOCX, etc.)
+### Completed ✅
+- [x] Command palette with productivity utilities
+- [x] Word wrap toggle with persistence
+- [x] Auto-delete empty files
+- [x] Drag & drop file import
+- [x] Single-line break rendering
+- [x] Smart block spacing
+- [x] Task list utilities
+- [x] External file deduplication
+- [x] Organized settings sections
+- [x] Comprehensive changelog
+
+### Upcoming 🚀
+- [ ] More export formats (DOCX, PDF native)
 - [ ] Custom keyboard shortcuts
+- [ ] Table generator dialog
 - [ ] Plugin system
 - [ ] Vim mode
+- [ ] Content-based file deduplication
+- [ ] Performance optimization for large files
 
 ---
 

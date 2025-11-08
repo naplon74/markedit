@@ -1,6 +1,6 @@
 {
   "name": "markdown_editor",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "A modern markdown editor with live preview and Discord Rich Presence",
   "license": "ISC",
   "author": "naplon_",
@@ -24,8 +24,10 @@
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@xhayper/discord-rpc": "^1.3.0",
     "electron-updater": "6.6.2",
+    "html-docx-js-typescript": "^0.1.5",
     "marked": "^16.4.1",
-    "simple-git": "^3.30.0"
+     "highlight.js": "^11.9.0",
+     "simple-git": "^3.30.0"
   },
   "build": {
     "appId": "com.naplon.markedit",
@@ -46,11 +48,29 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "artifactName": "${productName}-${version}-Setup.${ext}",
       "icon": "icon.ico",
+      "fileAssociations": [
+        {
+          "ext": "md",
+          "name": "Markdown File",
+          "description": "Markdown Document",
+          "icon": "icon.ico",
+          "role": "Editor"
+        },
+        {
+          "ext": "markdown",
+          "name": "Markdown File",
+          "description": "Markdown Document",
+          "icon": "icon.ico",
+          "role": "Editor"
+        }
+      ],
       "publish": {
         "provider": "github",
         "owner": "naplon74",

@@ -93,6 +93,20 @@
       flex: 1;
       overflow-y: auto;
       padding: 40px;
+      position: relative;
+    }
+
+    .home-content.drag-active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--accent-primary);
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 1;
     }
 
     .welcome-section {
@@ -245,15 +259,8 @@
       transform: translateY(0);
     }
 
-    .import-btn {
-      background: var(--bg-secondary);
-      border-color: var(--border-primary);
-      margin-left: 15px;
-    }
-
-    .import-btn:hover {
-      background: var(--card-hover);
-      border-color: var(--border-primary);
+    .import-dropzone {
+      display: none;
     }
 
     .section-title {
@@ -510,10 +517,13 @@
         <span data-i18n="new_file">New File</span>
       </button>
 
-      <button class="new-file-button import-btn" id="import-btn">
-        <i class="fas fa-file-import"></i>
-        <span data-i18n="import_file">Import File</span>
-      </button>
+      <div class="import-dropzone" id="import-dropzone" style="display:none;">
+        <div class="drop-inner">
+          <i class="fas fa-file-import"></i>
+          <div class="drop-title">Drag & drop a .md file to import</div>
+          <div class="drop-sub">You can also drop .markdown or .txt files</div>
+        </div>
+      </div>
 
       <h2 class="section-title" data-i18n="recent_files">Recent Files</h2>
       <div class="files-grid" id="files-grid">
@@ -570,16 +580,76 @@
       }
     });
 
-    // Import button
-    document.getElementById('import-btn').addEventListener('click', async () => {
-      const result = await ipcRenderer.invoke('import-file');
-      if (result.success) {
-        localStorage.setItem('currentFileId', result.fileId);
-        ipcRenderer.send('load-page', 'editor.html');
-      } else if (!result.cancelled && result.error) {
-        dialog.alert('Import Failed', `Import failed: ${result.error}`);
-      }
-    });
+    // Drag & drop import zone (entire home-content)
+    const homeContent = document.querySelector('.home-content');
+    if (homeContent) {
+      const isValidExt = (name) => /\.(md|markdown|txt)$/i.test(name);
+      let dragCounter = 0; // Track nested drag events
+      
+      homeContent.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        dragCounter++;
+        if (dragCounter === 1) homeContent.classList.add('drag-active');
+      });
+      
+      homeContent.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dragCounter--;
+        if (dragCounter === 0) homeContent.classList.remove('drag-active');
+      });
+      
+      homeContent.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      });
+      
+      homeContent.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter = 0;
+        homeContent.classList.remove('drag-active');
+        
+        // Electron provides file paths in dataTransfer.files[i].path
+        // But we need to access them differently in the renderer
+        const files = Array.from(e.dataTransfer.files);
+        if (!files || !files.length) return;
+        
+        const file = files[0];
+        if (!isValidExt(file.name)) {
+          dialog.alert('Invalid File', 'Please drop a .md, .markdown or .txt file.');
+          return;
+        }
+        
+        try {
+          // Read the file using FileReader and send content to main process
+          const reader = new FileReader();
+          reader.onload = async (ev) => {
+            try {
+              const content = ev.target.result;
+              const fileName = file.name.replace(/\.(md|markdown|txt)$/i, '');
+              
+              // Create new file with the content
+              const fileData = await ipcRenderer.invoke('create-new-file');
+              if (fileData) {
+                fileData.title = fileName;
+                fileData.content = content;
+                await ipcRenderer.invoke('save-file', fileData);
+                localStorage.setItem('currentFileId', fileData.id);
+                ipcRenderer.send('load-page', 'editor.html');
+              }
+            } catch (err) {
+              dialog.alert('Import Failed', err?.message || String(err));
+            }
+          };
+          reader.onerror = () => {
+            dialog.alert('Import Failed', 'Could not read file.');
+          };
+          reader.readAsText(file);
+        } catch (err) {
+          dialog.alert('Import Failed', err?.message || String(err));
+        }
+      });
+    }
 
     // Load user data
     async function loadUserData() {

@@ -15,6 +15,7 @@ let rpcStartTs = Math.floor(Date.now() / 1000);
 let lastPresence = null; // cache last activity to re-apply on reconnect
 let rpcImageKey = 'icon'; // default asset key; can be overridden via settings.rpcAssetKey
 let rpcEnabled = true; // togglable via settings
+let pendingFileToOpen = null; // Store file path opened from external source
 
 // Initialize Discord Rich Presence (best-effort)
 async function initRichPresence() {
@@ -85,7 +86,7 @@ function setPresenceEditing(filename) {
     state: 'Markedit',
     timestamps: { start: rpcStartTs * 1000 },
   assets: { large_image: rpcImageKey, large_text: 'Markedit' },
-    buttons: [{ label: 'Download Markedit', url: 'https://github.com/example/markedit' }]
+    buttons: [{ label: 'Download Markedit', url: 'https://github.com/naplon74/markedit' }]
   };
   lastPresence = activity;
   try { applyActivity(activity); } catch (e) { if (isDev) console.warn('[RPC] setActivity(editing) failed:', e?.message || e); }
@@ -102,7 +103,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      devTools: false // Disable DevTools by default
+      devTools: true // Enable DevTools for debugging
     },
     backgroundColor: '#1e1e1e',
     titleBarStyle: 'hidden'
@@ -116,7 +117,12 @@ function createWindow() {
   if (settings && Object.prototype.hasOwnProperty.call(settings, 'rpcEnabled')) {
     rpcEnabled = !!settings.rpcEnabled;
   }
-  if (!settings.username) {
+  
+  // Check if we have a pending file to open
+  if (pendingFileToOpen) {
+    importAndOpenFile(pendingFileToOpen);
+    pendingFileToOpen = null;
+  } else if (!settings.username) {
     mainWindow.loadFile('onboarding.html');
   } else {
     mainWindow.loadFile('home.html');
@@ -201,7 +207,26 @@ ipcMain.on('close-window', () => {
 
 ipcMain.on('confirm-close', () => {
   if (mainWindow) {
-    mainWindow.destroy();
+    // Before closing, if current file is an untouched 'Untitled' empty, delete it
+    try {
+      mainWindow.webContents.executeJavaScript(`(function(){
+        try {
+          const id = localStorage.getItem('currentFileId');
+          const title = (document.getElementById('file-title')?.value || '').trim();
+          const content = (document.getElementById('markdown-input')?.value || '').trim();
+          return { id, title, content };
+        } catch (e) { return { id: null, title: null, content: null }; }
+      })();`).then(async (state) => {
+        try {
+          if (state && state.id && ((state.title === '' || state.title === 'Untitled') && state.content === '')) {
+            await storage.deleteFile(state.id);
+          }
+        } catch {}
+        mainWindow.destroy();
+      });
+    } catch {
+      mainWindow.destroy();
+    }
   }
 });
 
@@ -288,6 +313,28 @@ ipcMain.handle('auto-save', (event, fileId, content) => {
   return storage.autoSave(fileId, content);
 });
 
+// Danger zone: clear all cached data and files
+ipcMain.handle('clear-all-data', async () => {
+  try {
+    const userDataPath = app.getPath('userData');
+    const targets = [
+      path.join(userDataPath, 'files'),
+      path.join(userDataPath, 'drafts'),
+      path.join(userDataPath, 'images'),
+      path.join(userDataPath, 'git-repos')
+    ];
+    for (const dir of targets) {
+      try { if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true }); } catch (e) { if (isDev) console.warn('Failed to remove', dir, e?.message || e); }
+    }
+    // Recreate required base directories
+    try { fs.mkdirSync(path.join(userDataPath, 'files'), { recursive: true }); } catch {}
+    return { success: true };
+  } catch (e) {
+    if (isDev) console.error('clear-all-data failed:', e);
+    return { success: false, error: e?.message || String(e) };
+  }
+});
+
 ipcMain.handle('export-file', async (event, content, title) => {
   const { filePath, format } = await dialog.showSaveDialog(mainWindow, {
     title: 'Export File',
@@ -296,7 +343,8 @@ ipcMain.handle('export-file', async (event, content, title) => {
       { name: 'Markdown', extensions: ['md'] },
       { name: 'Text', extensions: ['txt'] },
       { name: 'HTML', extensions: ['html'] },
-      { name: 'PDF', extensions: ['pdf'] }
+      { name: 'PDF', extensions: ['pdf'] },
+      { name: 'Word Document', extensions: ['docx'] }
     ]
   });
 
@@ -405,6 +453,50 @@ ${marked.parse(content)}
 </body>
 </html>`;
       }
+
+      // If exporting as DOCX, convert markdown to HTML then to Word document
+      if (filePath.endsWith('.docx')) {
+        const { marked } = require('marked');
+        const htmlDocx = require('html-docx-js-typescript');
+        
+        marked.setOptions({
+          breaks: true,
+          gfm: true,
+          headerIds: true,
+          mangle: false
+        });
+
+        const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${title || 'Document'}</title>
+  <style>
+    body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; }
+    h1 { font-size: 20pt; font-weight: bold; margin-top: 12pt; margin-bottom: 6pt; }
+    h2 { font-size: 16pt; font-weight: bold; margin-top: 10pt; margin-bottom: 4pt; }
+    h3 { font-size: 14pt; font-weight: bold; margin-top: 8pt; margin-bottom: 3pt; }
+    h4, h5, h6 { font-size: 12pt; font-weight: bold; margin-top: 6pt; margin-bottom: 2pt; }
+    p { margin-top: 0pt; margin-bottom: 8pt; }
+    code { font-family: 'Courier New', monospace; background: #f0f0f0; padding: 2px 4px; }
+    pre { font-family: 'Courier New', monospace; background: #f0f0f0; padding: 8pt; margin: 8pt 0; }
+    blockquote { border-left: 3pt solid #ccc; padding-left: 12pt; margin-left: 0; color: #666; }
+    table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+    th, td { border: 1pt solid #ccc; padding: 4pt 8pt; text-align: left; }
+    th { background: #f0f0f0; font-weight: bold; }
+    ul, ol { margin-top: 0pt; margin-bottom: 8pt; padding-left: 24pt; }
+    li { margin-bottom: 4pt; }
+  </style>
+</head>
+<body>
+${marked.parse(content)}
+</body>
+</html>`;
+
+        const docxBuffer = await htmlDocx.asBlob(htmlContent);
+        fs.writeFileSync(filePath, Buffer.from(docxBuffer));
+        return { success: true, path: filePath, format: 'docx' };
+      }
       
       fs.writeFileSync(filePath, fileContent, 'utf8');
       return { success: true, path: filePath, format };
@@ -453,6 +545,25 @@ ipcMain.on('quit-and-install', () => {
 ipcMain.on('rpc-set-home', () => setPresenceHome());
 ipcMain.on('rpc-set-editing', (e, filename) => setPresenceEditing(filename));
 
+// Import a specific external path (used by drag & drop)
+ipcMain.handle('import-external', async (_e, externalPath) => {
+  try {
+    if (!externalPath || !fs.existsSync(externalPath)) return { success: false, error: 'File not found' };
+    const existing = storage.findFileBySourcePath(externalPath);
+    if (existing && existing.id) return { success: true, fileId: existing.id, reused: true };
+    const content = fs.readFileSync(externalPath, 'utf8');
+    const fileName = path.basename(externalPath, path.extname(externalPath));
+    const fileData = storage.createNewFile();
+    if (!fileData) return { success: false, error: 'Failed to create file' };
+    fileData.title = fileName; fileData.content = content; fileData.sourcePath = externalPath;
+    storage.saveFile(fileData);
+    return { success: true, fileId: fileData.id, reused: false };
+  } catch (e) {
+    if (isDev) console.error('import-external failed:', e);
+    return { success: false, error: e?.message || String(e) };
+  }
+});
+
 
 ipcMain.handle('import-file', async () => {
   const { filePaths } = await dialog.showOpenDialog(mainWindow, {
@@ -465,17 +576,23 @@ ipcMain.handle('import-file', async () => {
   });
 
   if (filePaths && filePaths.length > 0) {
+    const selectedPath = filePaths[0];
+    // Check if already imported
+    const existing = storage.findFileBySourcePath(selectedPath);
+    if (existing && existing.id) {
+      return { success: true, fileId: existing.id, reused: true };
+    }
     try {
-      const content = fs.readFileSync(filePaths[0], 'utf8');
-      const fileName = path.basename(filePaths[0], path.extname(filePaths[0]));
-      
+      const content = fs.readFileSync(selectedPath, 'utf8');
+      const fileName = path.basename(selectedPath, path.extname(selectedPath));
       // Create a new file with imported content
       const fileData = storage.createNewFile();
       if (fileData) {
         fileData.title = fileName;
         fileData.content = content;
+        fileData.sourcePath = selectedPath;
         storage.saveFile(fileData);
-        return { success: true, fileId: fileData.id };
+        return { success: true, fileId: fileData.id, reused: false };
       }
     } catch (error) {
       if (isDev) console.error('Error importing file:', error);
@@ -523,6 +640,95 @@ ipcMain.handle('add-image', async (event, fileId) => {
   }
   
   return { success: false, cancelled: true };
+});
+
+// Download remote image into file's images cache (smart paste)
+ipcMain.handle('download-image', async (event, { url, fileId }) => {
+  if (!url || !fileId) return { success: false, error: 'Missing url or fileId' };
+  try {
+    // Basic validation
+    if (!/^https?:\/\//i.test(url)) return { success: false, error: 'Invalid URL' };
+    const extMatch = url.match(/\.(png|jpe?g|gif|webp|svg)(\?|#|$)/i);
+    const ext = extMatch ? ('.' + extMatch[1].toLowerCase().replace('jpeg', 'jpg')) : '.png';
+    const imageFileName = `${Date.now()}${ext}`;
+    const userDataPath = app.getPath('userData');
+    const imagesDir = path.join(userDataPath, 'images', fileId);
+    if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
+    const destPath = path.join(imagesDir, imageFileName);
+
+    // Use native fetch (Node 18+/Electron >= 20) fallback to https if needed
+    let arrayBuffer;
+    if (typeof fetch === 'function') {
+      const resp = await fetch(url, { redirect: 'follow' });
+      if (!resp.ok) return { success: false, error: `HTTP ${resp.status}` };
+      arrayBuffer = await resp.arrayBuffer();
+    } else {
+      const https = require('https');
+      arrayBuffer = await new Promise((resolve, reject) => {
+        https.get(url, (res) => {
+          if (res.statusCode && res.statusCode >= 400) return reject(new Error('HTTP ' + res.statusCode));
+          const chunks = [];
+            res.on('data', d => chunks.push(d));
+            res.on('end', () => resolve(Buffer.concat(chunks)));
+        }).on('error', reject);
+      });
+    }
+    fs.writeFileSync(destPath, Buffer.from(arrayBuffer));
+    const relativePath = `app-images://images/${fileId}/${imageFileName}`;
+    const baseName = path.basename(url).split('?')[0].split('#')[0];
+    return { success: true, path: relativePath, fileName: baseName.replace(/\.(png|jpe?g|gif|webp|svg)$/i,'') };
+  } catch (e) {
+    if (isDev) console.error('download-image failed:', e);
+    return { success: false, error: e.message };
+  }
+});
+
+// Draft autosave & recovery handlers
+const getDraftsDir = () => {
+  const dir = path.join(app.getPath('userData'), 'drafts');
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return dir;
+};
+
+ipcMain.handle('save-draft', (event, fileId, content) => {
+  try {
+    if (!fileId) return { success: false, error: 'No fileId' };
+    const draftsDir = getDraftsDir();
+    const draftPath = path.join(draftsDir, `${fileId}.json`);
+    fs.writeFileSync(draftPath, JSON.stringify({ content, updatedAt: Date.now() }));
+    return { success: true };
+  } catch (e) {
+    if (isDev) console.error('save-draft failed:', e);
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('load-draft', (event, fileId, fileUpdatedAt) => {
+  try {
+    if (!fileId) return { success: false };
+    const draftsDir = getDraftsDir();
+    const draftPath = path.join(draftsDir, `${fileId}.json`);
+    if (!fs.existsSync(draftPath)) return { success: true, exists: false };
+    const data = JSON.parse(fs.readFileSync(draftPath, 'utf8'));
+    const newer = !fileUpdatedAt || data.updatedAt > new Date(fileUpdatedAt).getTime();
+    return { success: true, exists: true, newer, content: data.content };
+  } catch (e) {
+    if (isDev) console.error('load-draft failed:', e);
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('delete-draft', (event, fileId) => {
+  try {
+    if (!fileId) return { success: false };
+    const draftsDir = getDraftsDir();
+    const draftPath = path.join(draftsDir, `${fileId}.json`);
+    if (fs.existsSync(draftPath)) fs.unlinkSync(draftPath);
+    return { success: true };
+  } catch (e) {
+    if (isDev) console.error('delete-draft failed:', e);
+    return { success: false, error: e.message };
+  }
 });
 
 // Git Integration
@@ -586,6 +792,96 @@ ipcMain.handle('git-push', async (event, { repoUrl, filename, content, commitMsg
     return { success: false, error: error.message };
   }
 });
+
+// Function to import external file and open in editor
+function importAndOpenFile(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) {
+      if (isDev) console.warn('[File Open] File not found:', filePath);
+      return;
+    }
+
+    // Deduplicate by original path
+    const existing = storage.findFileBySourcePath(filePath);
+    if (existing && existing.id) {
+      if (isDev) console.log('[File Open] Reusing cached file for', filePath);
+      if (mainWindow) {
+        mainWindow.webContents.executeJavaScript(`
+          try { localStorage.setItem('currentFileId', '${existing.id}'); } catch(e) {}
+        `).then(() => mainWindow.loadFile('editor.html'));
+      }
+      return;
+    }
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    const fileName = path.basename(filePath, path.extname(filePath));
+    
+    // Create a new file with imported content
+    const fileData = storage.createNewFile();
+    if (fileData) {
+      fileData.title = fileName;
+      fileData.content = content;
+      fileData.sourcePath = filePath; // link to external source
+      storage.saveFile(fileData);
+      
+      if (isDev) console.log('[File Open] Imported external file:', fileName);
+      
+      // Load editor with this file
+      if (mainWindow) {
+        mainWindow.webContents.executeJavaScript(`
+          try {
+            localStorage.setItem('currentFileId', '${fileData.id}');
+          } catch(e) {}
+        `).then(() => {
+          mainWindow.loadFile('editor.html');
+        });
+      }
+    }
+  } catch (error) {
+    if (isDev) console.error('[File Open] Error importing file:', error);
+  }
+}
+
+// Handle file open from Windows (command line args)
+const fileArg = process.argv.find(arg => arg.endsWith('.md') || arg.endsWith('.markdown'));
+if (fileArg && fs.existsSync(fileArg)) {
+  pendingFileToOpen = fileArg;
+}
+
+// Handle file open on macOS
+app.on('open-file', (event, filePath) => {
+  event.preventDefault();
+  if (filePath && (filePath.endsWith('.md') || filePath.endsWith('.markdown'))) {
+    if (mainWindow) {
+      importAndOpenFile(filePath);
+    } else {
+      pendingFileToOpen = filePath;
+    }
+  }
+});
+
+// Request single instance lock to handle file opens when app is already running
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Handle file open from second instance (Windows)
+    const fileArg = commandLine.find(arg => arg.endsWith('.md') || arg.endsWith('.markdown'));
+    if (fileArg && fs.existsSync(fileArg)) {
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+        importAndOpenFile(fileArg);
+      }
+    } else if (mainWindow) {
+      // Just focus the window if no file argument
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
 
 app.whenReady().then(() => {
   // Register custom protocol to serve local images

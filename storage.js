@@ -18,7 +18,9 @@ if (!fs.existsSync(filesPath)) {
 const defaultSettings = {
   username: '',
   language: 'en',
-  theme: 'dark'
+  theme: 'dark',
+  gitEnabled: false,
+  gitPanelCollapsed: false
 };
 
 // Get settings
@@ -174,6 +176,33 @@ function autoSave(fileId, content) {
   return false;
 }
 
+// Find a cached file by external source path (case-insensitive on Windows)
+function findFileBySourcePath(externalPath) {
+  try {
+    if (!externalPath) return null;
+    const normalize = (p) => {
+      try { return path.normalize(p).toLowerCase(); } catch { return String(p || '').toLowerCase(); }
+    };
+    const target = normalize(externalPath);
+    const files = fs.readdirSync(filesPath).filter(f => f.endsWith('.json'));
+    for (const f of files) {
+      const fp = path.join(filesPath, f);
+      try {
+        const data = JSON.parse(fs.readFileSync(fp, 'utf8'));
+        if (data && data.sourcePath && normalize(data.sourcePath) === target) {
+          return {
+            id: f.replace('.json',''),
+            data
+          };
+        }
+      } catch {}
+    }
+  } catch (e) {
+    if (isDev) console.warn('findFileBySourcePath failed:', e);
+  }
+  return null;
+}
+
 module.exports = {
   getSettings,
   saveSettings,
@@ -183,5 +212,6 @@ module.exports = {
   loadFile,
   deleteFile,
   renameFile,
-  autoSave
+  autoSave,
+  findFileBySourcePath
 };
