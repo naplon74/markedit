@@ -23,6 +23,9 @@
 ## 🆕 Recent Updates
 
 ### Latest Features (November 2025)
+- 🔧 **Improved File Organization** - Restructured project with separate html/, css/, js/, and assets/ folders
+- 🔔 **Better Notifications** - App name now shows as "Markedit" instead of "electron.app.Electron"
+- 🌍 **Complete Translations** - All UI elements now fully translated in all 4 languages
 - ⚡ **Command Palette** (Ctrl+Shift+P) with word wrap, timestamps, and task list utilities
 - 🎨 **Revamped Settings** with organized sections and comprehensive changelog
 - 📁 **Drag & Drop Import** - Drop .md files anywhere on the home screen
@@ -242,15 +245,24 @@ Output will be placed in the `dist/` folder as a single installer:
 ```
 markedit/
 ├── index.js              # Main Electron process
-├── storage.js            # File storage and settings management
-├── home.html             # Home screen with recent files
-├── editor.html           # Markdown editor interface
-├── settings.html         # Settings and preferences
-├── onboarding.html       # First-launch wizard
-├── js/
+├── html/                 # HTML pages
+│   ├── home.html         # Home screen with recent files
+│   ├── editor.html       # Markdown editor interface
+│   ├── settings.html     # Settings and preferences
+│   └── onboarding.html   # First-launch wizard
+├── js/                   # JavaScript modules
+│   ├── storage.js        # File storage and settings management
 │   ├── editor.js         # Editor logic and markdown rendering
+│   ├── settings.js       # Settings page logic
+│   ├── onboarding.js     # Onboarding wizard logic
 │   ├── dialog.js         # Custom dialog system
 │   └── i18n.js           # Internationalization
+├── css/                  # Stylesheets
+│   ├── styles.css        # Global styles
+│   ├── home.css          # Home page styles
+│   ├── editor.css        # Editor page styles
+│   ├── settings.css      # Settings page styles
+│   └── onboarding.css    # Onboarding page styles
 ├── themes/               # Theme CSS files
 │   ├── dark.css
 │   ├── light.css
@@ -258,6 +270,8 @@ markedit/
 │   ├── deep-ocean.css
 │   ├── sunset.css
 │   └── cyberpunk.css
+├── assets/               # Static assets
+│   └── icon.ico          # Application icon
 └── package.json          # Dependencies and build config
 ```
 
@@ -340,6 +354,9 @@ If you like Markedit, give it a ⭐️ on GitHub!
 ## 🔮 Roadmap
 
 ### Completed ✅
+- [x] Improved file organization with modular structure
+- [x] Better notification system with proper app branding
+- [x] Complete i18n implementation across all pages
 - [x] Command palette with productivity utilities
 - [x] Word wrap toggle with persistence
 - [x] Auto-delete empty files
@@ -350,14 +367,11 @@ If you like Markedit, give it a ⭐️ on GitHub!
 - [x] External file deduplication
 - [x] Organized settings sections
 - [x] Comprehensive changelog
+- [x] More export formats (DOCX, PDF native)
 
 ### Upcoming 🚀
-- [ ] More export formats (DOCX, PDF native)
 - [ ] Custom keyboard shortcuts
 - [ ] Table generator dialog
-- [ ] Plugin system
-- [ ] Vim mode
-- [ ] Content-based file deduplication
 - [ ] Performance optimization for large files
 
 ---
