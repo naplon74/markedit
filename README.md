@@ -9,9 +9,14 @@
 [![Version](https://img.shields.io/github/v/release/naplon74/markedit)](https://github.com/naplon74/markedit/releases)
 [![License](https://img.shields.io/badge/license-ISC-blue.svg)](package.json)
 
-[Download Latest Release](https://github.com/naplon74/markedit/releases/latest) • [Report Bug](https://github.com/naplon74/markedit/issues) • [Request Feature](https://github.com/naplon74/markedit/issues)
+[Download Latest Release](https://github.com/naplon74/markedit/releases/latest) • [Report Bug](https://github.com/naplon74/markedit/issues)
 
 </div>
+
+---
+
+> [!IMPORTANT]
+> Linux version comming soon.
 
 ---
 
@@ -25,8 +30,6 @@
 - 📝 **Better Markdown Rendering** - Single-line breaks now work correctly
 - ✨ **Smart Editor** - Auto-exit lists, image spacing, and more
 - 🔍 **File Deduplication** - Won't import the same external file twice
-
-[See full changelog in Settings →](#)
 
 ---
 
