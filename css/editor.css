@@ -1,22 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Editor</title>
-  <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
-  <link rel="stylesheet" href="node_modules/highlight.js/styles/github-dark.min.css">
-  <link rel="stylesheet" href="styles.css">
-  <script>
-    // Load theme before page renders
-    const currentTheme = localStorage.getItem('theme') || 'dark';
-    const themeLink = document.createElement('link');
-    themeLink.rel = 'stylesheet';
-    themeLink.href = `themes/${currentTheme}.css`;
-    themeLink.dataset.theme = currentTheme;
-    document.head.appendChild(themeLink);
-  </script>
-  <style>
     /* Responsive / Overflow Menu */
     .overflow-wrapper { position: relative; }
     #overflow-btn { position: relative; }
@@ -27,12 +8,38 @@
     .overflow-item:hover { background: var(--card-hover); padding-left: 18px; }
     @keyframes fadeScale { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     .wide-only { display: inline-flex; }
+    
+    /* Responsive icon hiding - graceful degradation */
+    @media (max-width: 1400px) {
+      #md-toolbar #hr-btn, #md-toolbar #table-btn { display: none !important; }
+    }
+    @media (max-width: 1300px) {
+      #md-toolbar #quote-btn, #md-toolbar #link-btn { display: none !important; }
+    }
+    @media (max-width: 1200px) {
+      #md-toolbar #task-btn, #md-toolbar #ol-btn { display: none !important; }
+    }
     @media (max-width: 1180px) {
-      #export-btn, #image-btn, #outline-btn { display: none; }
+      #export-btn, #image-btn { display: none !important; }
+    }
+    @media (max-width: 1150px) {
+      #emoji-btn, #wiki-btn { display: none !important; }
+    }
+    @media (max-width: 1100px) {
+      #md-toolbar #ul-btn, #md-toolbar #h3-btn { display: none !important; }
+    }
+    @media (max-width: 1050px) {
+      #outline-btn { display: none !important; }
+    }
+    @media (max-width: 1000px) {
+      #md-toolbar #h2-btn, #md-toolbar #h1-btn { display: none !important; }
     }
     @media (max-width: 900px) {
-      .titlebar-center #md-toolbar button { display: none; }
-      #file-title { width: 140px; }
+      #md-toolbar #codeblock-btn, #md-toolbar #code-btn { display: none !important; }
+      .file-title-input { width: 140px; max-width: 140px; }
+    }
+    @media (max-width: 800px) {
+      #md-toolbar { display: none !important; }
     }
     #md-toolbar { overflow:hidden; flex-wrap:nowrap; max-width:100%; }
     .editor-container {
@@ -63,10 +70,17 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      -webkit-app-region: no-drag;
+      -webkit-app-region: drag;  /* Make center draggable by default */
       flex: 1 1 auto;
       min-width: 0;
       overflow: hidden;
+    }
+
+    /* Individual interactive elements override drag */
+    .titlebar-center input,
+    .titlebar-center button,
+    .titlebar-center #md-toolbar {
+      -webkit-app-region: no-drag;
     }
 
     .file-title-input {
@@ -77,8 +91,10 @@
       padding: 4px 12px;
       font-size: 14px;
       font-weight: 500;
-      width: 200px;
+      width: 180px;
+      max-width: 180px;
       text-align: center;
+      flex-shrink: 0;
     }
 
     .file-title-input:focus {
@@ -771,243 +787,20 @@
     .find-close { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 14px; padding: 4px 6px; }
     .find-close:hover { color: var(--text-primary); }
     .find-divider { height: 1px; background: var(--border-primary); margin: 6px 0; }
-  </style>
-</head>
-<body>
-  <div class="editor-container">
-    <!-- Custom Title Bar -->
-    <div class="custom-titlebar">
-      <div class="titlebar-left">
-        <div class="overflow-wrapper">
-          <button class="titlebar-button" id="overflow-btn" title="Menu">
-            <i class="fas fa-bars"></i>
-          </button>
-          <div class="overflow-menu" id="overflow-menu">
-            <div class="overflow-item" data-action="settings"><i class="fas fa-cog"></i><span>Settings</span></div>
-            <div class="overflow-item" data-action="export"><i class="fas fa-file-export"></i><span>Export</span></div>
-            <div class="overflow-item" data-action="image"><i class="fas fa-image"></i><span>Add Image</span></div>
-            <div class="overflow-item" data-action="outline"><i class="fas fa-list"></i><span>Toggle Outline</span></div>
-            <div class="overflow-item" data-action="find"><i class="fas fa-search"></i><span>Find / Replace</span></div>
-          </div>
-        </div>
-        <button class="titlebar-button" id="home-btn" title="Go to Home">
-          <i class="fas fa-home"></i>
-        </button>
-      </div>
-      <div class="titlebar-center">
-        <input type="text" class="file-title-input" id="file-title" placeholder="Untitled" maxlength="50">
-        <span class="autosave-indicator" id="autosave-indicator">
-          <i class="fas fa-check-circle"></i>
-          <span class="autosave-text">Saved</span>
-        </span>
-        <!-- Formatting toolbar -->
-        <div id="md-toolbar" style="display:flex;align-items:center;gap:6px;margin-left:8px;">
-          <button class="titlebar-button" id="bold-btn" title="Bold (Ctrl+B)"><i class="fas fa-bold"></i></button>
-          <button class="titlebar-button" id="italic-btn" title="Italic (Ctrl+I)"><i class="fas fa-italic"></i></button>
-          <button class="titlebar-button" id="strike-btn" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
-          <button class="titlebar-button" id="code-btn" title="Inline code"><i class="fas fa-code"></i></button>
-          <button class="titlebar-button" id="codeblock-btn" title="Code block (Ctrl+Shift+C)"><i class="fas fa-file-code"></i></button>
-          <button class="titlebar-button" id="h1-btn" title="Heading 1"><b>H1</b></button>
-          <button class="titlebar-button" id="h2-btn" title="Heading 2"><b>H2</b></button>
-          <button class="titlebar-button" id="h3-btn" title="Heading 3"><b>H3</b></button>
-          <button class="titlebar-button" id="ul-btn" title="Bulleted list"><i class="fas fa-list-ul"></i></button>
-          <button class="titlebar-button" id="ol-btn" title="Numbered list"><i class="fas fa-list-ol"></i></button>
-          <button class="titlebar-button" id="task-btn" title="Task list"><i class="far fa-square"></i></button>
-          <button class="titlebar-button" id="quote-btn" title="Blockquote"><i class="fas fa-quote-left"></i></button>
-          <button class="titlebar-button" id="hr-btn" title="Horizontal Rule"><i class="fas fa-minus"></i></button>
-          <button class="titlebar-button" id="link-btn" title="Link (Ctrl+K)"><i class="fas fa-link"></i></button>
-          <button class="titlebar-button" id="table-btn" title="Insert table 3x3"><i class="fas fa-table"></i></button>
-        </div>
 
-        <button class="titlebar-button" id="export-btn" title="Export File" data-i18n="export_file" data-i18n-attr="title">
-          <i class="fas fa-file-export"></i>
-        </button>
-        <button class="titlebar-button" id="image-btn" title="Add Image" data-i18n="add_image" data-i18n-attr="title">
-          <i class="fas fa-image"></i>
-        </button>
-        <button class="outline-toggle-btn" id="outline-btn" title="Toggle Outline" aria-label="Toggle Outline">
-          <i class="fas fa-list"></i>
-        </button>
-        <!-- Find button removed; accessible via Command Palette and Menu -->
-      </div>
-      <div class="titlebar-right">
-        <!-- Time Widget -->
-        <div class="time-widget" id="time-widget">
-          <i class="fas fa-clock"></i>
-          <span class="time-display" id="time-display">00:00</span>
-        </div>
-
-        <!-- Time Modal -->
-        <div class="time-modal" id="time-modal">
-          <div class="time-mode-selector">
-            <button class="time-mode-btn active" data-mode="clock" data-i18n="clock">Clock</button>
-            <button class="time-mode-btn" data-mode="timer" data-i18n="timer">Timer</button>
-            <button class="time-mode-btn" data-mode="countdown" data-i18n="countdown">Countdown</button>
-          </div>
-          
-          <div id="clock-section" style="display: block;">
-            <div class="digital-clock">
-              <div class="digital-time" id="digital-time">00:00:00</div>
-              <div class="digital-date" id="digital-date">Monday, January 1, 2024</div>
-            </div>
-          </div>
-
-          <div id="timer-section" style="display: none;">
-            <div class="timer-inputs">
-              <div class="timer-input-group">
-                <label data-i18n="hours">Hours</label>
-                <input type="number" class="timer-input" id="timer-hours" min="0" max="23" value="0">
-              </div>
-              <div class="timer-input-group">
-                <label data-i18n="minutes">Minutes</label>
-                <input type="number" class="timer-input" id="timer-minutes" min="0" max="59" value="0">
-              </div>
-              <div class="timer-input-group">
-                <label data-i18n="seconds">Seconds</label>
-                <input type="number" class="timer-input" id="timer-seconds" min="0" max="59" value="0">
-              </div>
-            </div>
-            <div class="timer-controls">
-              <button class="timer-control-btn start" id="timer-start" data-i18n="start">Start</button>
-              <button class="timer-control-btn" id="timer-reset" data-i18n="reset">Reset</button>
-            </div>
-          </div>
-
-          <div id="countdown-section" style="display: none;">
-            <div class="timer-inputs">
-              <div class="timer-input-group">
-                <label data-i18n="hours">Hours</label>
-                <input type="number" class="timer-input" id="countdown-hours" min="0" max="23" value="0">
-              </div>
-              <div class="timer-input-group">
-                <label data-i18n="minutes">Minutes</label>
-                <input type="number" class="timer-input" id="countdown-minutes" min="0" max="59" value="25">
-              </div>
-              <div class="timer-input-group">
-                <label data-i18n="seconds">Seconds</label>
-                <input type="number" class="timer-input" id="countdown-seconds" min="0" max="59" value="0">
-              </div>
-            </div>
-            <div class="timer-controls">
-              <button class="timer-control-btn start" id="countdown-start" data-i18n="start">Start</button>
-              <button class="timer-control-btn" id="countdown-reset" data-i18n="reset">Reset</button>
-            </div>
-          </div>
-        </div>
-
-        <button class="window-button" id="minimize-btn">
-          <i class="fas fa-window-minimize"></i>
-        </button>
-        <button class="window-button" id="maximize-btn">
-          <i class="fas fa-window-maximize"></i>
-        </button>
-        <button class="window-button close" id="close-btn">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Editor Main Content -->
-    <div class="editor-main">
-      <div id="outline-panel" class="outline-panel hidden">
-        <div class="outline-header">
-          <span data-i18n="outline_title">Outline</span>
-          <button id="outline-hide" class="find-close" title="Hide" aria-label="Hide Outline">×</button>
-        </div>
-        <div id="outline-content" class="outline-content"></div>
-      </div>
-      <div class="editor-pane" id="editor-pane">
-        <div class="pane-header">
-          <span class="pane-title" data-i18n="editor_title">Editor</span>
-        </div>
-        <textarea id="markdown-input" data-i18n="placeholder_md" data-i18n-attr="placeholder" placeholder="# Start writing your markdown here..."></textarea>
-      </div>
-      
-      <div class="divider" id="divider"></div>
-      
-      <div class="preview-pane" id="preview-pane">
-        <div class="pane-header">
-          <span class="pane-title" data-i18n="preview_title">Preview</span>
-        </div>
-        <div id="preview-output" class="preview-content"></div>
-      </div>
-    </div>
-
-    <!-- Status Bar -->
-    <div class="status-bar" id="status-bar">
-      <div class="status-left">
-        <span id="status-word-count">0 words</span>
-        <span id="status-char-count">0 chars</span>
-        <span id="status-reading-time">0 min read</span>
-      </div>
-      <div class="status-right">
-        <span id="status-active-heading"></span>
-      </div>
-    </div>
-
-    <!-- Command Palette -->
-    <div class="cmdk-overlay" id="cmdk-overlay">
-      <div class="cmdk-modal" role="dialog" aria-modal="true" aria-label="Command Palette">
-        <input type="text" class="cmdk-input" id="cmdk-input" placeholder="Type a command... (Ctrl+Shift+P)" />
-        <div class="cmdk-list" id="cmdk-list"></div>
-      </div>
-    </div>
-
-    <!-- Find / Replace Panel (hidden by default, opened via palette or menu) -->
-    <div id="find-panel" class="find-panel" role="dialog" aria-modal="false" aria-label="Find and Replace">
-      <div class="find-row">
-        <input type="text" id="find-input" placeholder="Find (Ctrl+F)" />
-        <span id="find-count" class="find-count"></span>
-        <button id="find-prev" class="find-btn" title="Previous (Shift+F3)"><i class="fas fa-arrow-up"></i></button>
-        <button id="find-next" class="find-btn" title="Next (F3)"><i class="fas fa-arrow-down"></i></button>
-        <button id="find-close" class="find-close" title="Close (Esc)">×</button>
-      </div>
-      <div class="find-row">
-        <input type="text" id="replace-input" placeholder="Replace (Ctrl+H)" />
-        <button id="replace-btn" class="find-btn">Replace</button>
-        <button id="replace-all-btn" class="find-btn primary">Replace All</button>
-      </div>
-      <div class="find-divider"></div>
-      <div class="find-options">
-        <label><input type="checkbox" id="find-case" /> <span>Match Case</span></label>
-        <label><input type="checkbox" id="find-regex" /> <span>Regex</span></label>
-        <label><input type="checkbox" id="find-word" /> <span>Whole Word</span></label>
-      </div>
-    </div>
-
-    <!-- Git Integration Panel -->
-    <div class="git-panel" id="git-panel" style="display: none;">
-      <div class="git-header">
-        <i class="fab fa-github"></i>
-        <span data-i18n="git_integration">Git Integration</span>
-        <button class="git-toggle" id="git-toggle">
-          <i class="fas fa-chevron-up"></i>
-        </button>
-      </div>
-      <div class="git-content" id="git-content">
-        <div class="git-repo-section" id="git-repo-section">
-          <label data-i18n="git_repo_url">Repository URL:</label>
-          <input type="text" id="git-repo-url" placeholder="https://github.com/username/repo.git">
-          <button id="git-connect-btn" class="git-btn" data-i18n="git_connect">Connect</button>
-        </div>
-        <div class="git-file-section" id="git-file-section" style="display: none;">
-          <div class="git-connected-info">
-            <i class="fas fa-check-circle"></i>
-            <span id="git-connected-repo"></span>
-            <button id="git-disconnect-btn" class="git-btn-small" data-i18n="git_disconnect">Disconnect</button>
-          </div>
-          <label data-i18n="git_filename">Filename in repo:</label>
-          <input type="text" id="git-filename" placeholder="README.md">
-          <label data-i18n="git_commit_msg">Commit message:</label>
-          <input type="text" id="git-commit-msg" placeholder="Update from Markedit">
-          <button id="git-push-btn" class="git-btn git-btn-primary" data-i18n="git_push">Push to GitHub</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <script src="js/dialog.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/editor.js"></script>
-</body>
-</html>
+    /* Emoji Picker */
+    .emoji-picker-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .emoji-picker-modal { background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: 12px; width: 420px; max-height: 500px; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); }
+    .emoji-picker-header { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid var(--border-primary); }
+    .emoji-search { flex: 1; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 8px 12px; color: var(--text-primary); font-size: 14px; }
+    .emoji-search:focus { outline: none; border-color: var(--accent-primary); }
+    .emoji-close-btn { background: transparent; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+    .emoji-close-btn:hover { background: var(--card-hover); color: var(--text-primary); }
+    .emoji-categories { display: flex; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--border-primary); overflow-x: auto; }
+    .emoji-category { background: transparent; border: none; font-size: 20px; padding: 6px; cursor: pointer; border-radius: 6px; transition: background 0.2s; }
+    .emoji-category:hover { background: var(--card-hover); }
+    .emoji-category.active { background: var(--accent-primary); }
+    .emoji-grid { padding: 12px; overflow-y: auto; max-height: 350px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+    .emoji-item { background: transparent; border: none; font-size: 24px; padding: 8px; cursor: pointer; border-radius: 6px; transition: background 0.2s, transform 0.1s; }
+    .emoji-item:hover { background: var(--card-hover); transform: scale(1.2); }
+    .emoji-item:active { transform: scale(1.1); }

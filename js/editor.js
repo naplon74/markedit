@@ -2,6 +2,299 @@ const { marked } = require('marked');
 const { ipcRenderer } = require('electron');
 let hljs; try { hljs = require('highlight.js'); } catch {}
 
+// Emoji shortcode map - common emojis
+const emojiMap = {
+  // Smileys & Emotion
+  ':)': '🙂', ':-)': '🙂', ':(': '🙁', ':-(': '🙁',
+  ':D': '😃', ':-D': '😃', ':P': '😛', ':-P': '😛',
+  ';)': '😉', ';-)': '😉', ':o': '😮', ':-o': '😮',
+  ':joy:': '😂', ':rofl:': '🤣', ':smile:': '😄', ':smiley:': '😃',
+  ':grin:': '😁', ':laughing:': '😆', ':sweat_smile:': '😅',
+  ':blush:': '😊', ':innocent:': '😇', ':wink:': '😉',
+  ':relieved:': '😌', ':heart_eyes:': '😍', ':kissing_heart:': '😘',
+  ':yum:': '😋', ':stuck_out_tongue:': '😛', ':stuck_out_tongue_winking_eye:': '😜',
+  ':neutral_face:': '😐', ':expressionless:': '😑', ':no_mouth:': '😶',
+  ':smirk:': '😏', ':unamused:': '😒', ':face_with_rolling_eyes:': '🙄',
+  ':grimacing:': '😬', ':lying_face:': '🤥', ':pensive:': '😔',
+  ':confused:': '😕', ':slightly_frowning_face:': '🙁', ':frowning_face:': '☹️',
+  ':persevere:': '😣', ':confounded:': '😖', ':tired_face:': '😫',
+  ':weary:': '😩', ':triumph:': '😤', ':rage:': '😡', ':angry:': '😠',
+  ':smiling_imp:': '😈', ':imp:': '👿', ':skull:': '💀',
+  ':clown_face:': '🤡', ':poop:': '💩', ':ghost:': '👻',
+  ':alien:': '👽', ':robot:': '🤖', ':jack_o_lantern:': '🎃',
+  ':smiley_cat:': '😺', ':heart_eyes_cat:': '😻', ':scream_cat:': '🙀',
+  ':crying_cat_face:': '😿', ':pouting_cat:': '😾',
+  ':see_no_evil:': '🙈', ':hear_no_evil:': '🙉', ':speak_no_evil:': '🙊',
+  ':kiss:': '💋', ':love_letter:': '💌', ':cupid:': '💘',
+  ':gift_heart:': '💝', ':sparkling_heart:': '💖', ':heartpulse:': '💗',
+  ':heartbeat:': '💓', ':revolving_hearts:': '💞', ':two_hearts:': '💕',
+  ':heart:': '❤️', ':orange_heart:': '🧡', ':yellow_heart:': '💛',
+  ':green_heart:': '💚', ':blue_heart:': '💙', ':purple_heart:': '💜',
+  ':black_heart:': '🖤', ':white_heart:': '🤍', ':brown_heart:': '🤎',
+  ':broken_heart:': '💔', ':heart_on_fire:': '❤️‍🔥',
+  ':100:': '💯', ':anger:': '💢', ':boom:': '💥', ':collision:': '💥',
+  ':dizzy:': '💫', ':sweat_drops:': '💦', ':dash:': '💨',
+  ':hole:': '🕳️', ':speech_balloon:': '💬', ':thought_balloon:': '💭',
+  ':zzz:': '💤',
+  
+  // People & Body
+  ':wave:': '👋', ':raised_back_of_hand:': '🤚', ':raised_hand:': '✋',
+  ':vulcan_salute:': '🖖', ':ok_hand:': '👌', ':pinched_fingers:': '🤌',
+  ':pinching_hand:': '🤏', ':v:': '✌️', ':crossed_fingers:': '🤞',
+  ':love_you_gesture:': '🤟', ':metal:': '🤘', ':call_me_hand:': '🤙',
+  ':point_left:': '👈', ':point_right:': '👉', ':point_up_2:': '👆',
+  ':point_down:': '👇', ':point_up:': '☝️', ':+1:': '👍', ':thumbsup:': '👍',
+  ':-1:': '👎', ':thumbsdown:': '👎', ':fist:': '✊', ':facepunch:': '👊',
+  ':left_facing_fist:': '🤛', ':right_facing_fist:': '🤜',
+  ':clap:': '👏', ':raised_hands:': '🙌', ':open_hands:': '👐',
+  ':palms_up_together:': '🤲', ':handshake:': '🤝', ':pray:': '🙏',
+  ':writing_hand:': '✍️', ':nail_care:': '💅', ':selfie:': '🤳',
+  ':muscle:': '💪', ':mechanical_arm:': '🦾', ':leg:': '🦵',
+  ':foot:': '🦶', ':ear:': '👂', ':nose:': '👃', ':brain:': '🧠',
+  ':tooth:': '🦷', ':bone:': '🦴', ':eyes:': '👀', ':eye:': '👁️',
+  ':tongue:': '👅', ':lips:': '👄',
+  
+  // Animals & Nature
+  ':dog:': '🐶', ':cat:': '🐱', ':mouse:': '🐭', ':hamster:': '🐹',
+  ':rabbit:': '🐰', ':fox:': '🦊', ':bear:': '🐻', ':panda_face:': '🐼',
+  ':koala:': '🐨', ':tiger:': '🐯', ':lion:': '🦁', ':cow:': '🐮',
+  ':pig:': '🐷', ':frog:': '🐸', ':monkey_face:': '🐵', ':see_no_evil:': '🙈',
+  ':chicken:': '🐔', ':penguin:': '🐧', ':bird:': '🐦', ':baby_chick:': '🐤',
+  ':bee:': '🐝', ':bug:': '🐛', ':butterfly:': '🦋', ':snail:': '🐌',
+  ':snake:': '🐍', ':turtle:': '🐢', ':fish:': '🐟', ':tropical_fish:': '🐠',
+  ':dolphin:': '🐬', ':whale:': '🐳', ':octopus:': '🐙', ':shell:': '🐚',
+  ':crab:': '🦀', ':lobster:': '🦞', ':shrimp:': '🦐',
+  ':dragon:': '🐉', ':unicorn:': '🦄', ':horse:': '🐴',
+  
+  // Food & Drink
+  ':apple:': '🍎', ':orange:': '🍊', ':lemon:': '🍋', ':banana:': '🍌',
+  ':watermelon:': '🍉', ':grapes:': '🍇', ':strawberry:': '🍓',
+  ':melon:': '🍈', ':cherries:': '🍒', ':peach:': '🍑', ':pear:': '🍐',
+  ':pineapple:': '🍍', ':kiwi_fruit:': '🥝', ':avocado:': '🥑',
+  ':tomato:': '🍅', ':eggplant:': '🍆', ':broccoli:': '🥦',
+  ':carrot:': '🥕', ':corn:': '🌽', ':hot_pepper:': '🌶️',
+  ':bread:': '🍞', ':croissant:': '🥐', ':baguette_bread:': '🥖',
+  ':pizza:': '🍕', ':hamburger:': '🍔', ':fries:': '🍟',
+  ':hot_dog:': '🌭', ':taco:': '🌮', ':burrito:': '🌯',
+  ':coffee:': '☕', ':tea:': '🍵', ':sake:': '🍶', ':beer:': '🍺',
+  ':wine_glass:': '🍷', ':cocktail:': '🍸', ':tropical_drink:': '🍹',
+  ':cake:': '🍰', ':cupcake:': '🧁', ':cookie:': '🍪',
+  ':chocolate_bar:': '🍫', ':candy:': '🍬', ':lollipop:': '🍭',
+  ':doughnut:': '🍩', ':ice_cream:': '🍨',
+  
+  // Activities & Sports
+  ':soccer:': '⚽', ':basketball:': '🏀', ':football:': '🏈',
+  ':baseball:': '⚾', ':tennis:': '🎾', ':volleyball:': '🏐',
+  ':8ball:': '🎱', ':ping_pong:': '🏓', ':badminton:': '🏸',
+  ':goal_net:': '🥅', ':ice_hockey:': '🏒', ':golf:': '⛳',
+  ':dart:': '🎯', ':trophy:': '🏆', ':medal:': '🏅',
+  ':1st_place_medal:': '🥇', ':2nd_place_medal:': '🥈', ':3rd_place_medal:': '🥉',
+  ':video_game:': '🎮', ':joystick:': '🕹️', ':game_die:': '🎲',
+  ':chess_pawn:': '♟️', ':musical_note:': '🎵', ':notes:': '🎶',
+  ':microphone:': '🎤', ':headphones:': '🎧', ':guitar:': '🎸',
+  ':trumpet:': '🎺', ':violin:': '🎻', ':drum:': '🥁',
+  
+  // Travel & Places
+  ':car:': '🚗', ':taxi:': '🚕', ':blue_car:': '🚙', ':bus:': '🚌',
+  ':train:': '🚆', ':airplane:': '✈️', ':rocket:': '🚀',
+  ':helicopter:': '🚁', ':bike:': '🚲', ':scooter:': '🛴',
+  ':ship:': '🚢', ':anchor:': '⚓', ':sailboat:': '⛵',
+  ':star:': '⭐', ':star2:': '🌟', ':sparkles:': '✨',
+  ':sunny:': '☀️', ':cloud:': '☁️', ':partly_sunny:': '⛅',
+  ':thunder_cloud_and_rain:': '⛈️', ':rain_cloud:': '🌧️',
+  ':snow_cloud:': '🌨️', ':rainbow:': '🌈', ':umbrella:': '☂️',
+  ':snowflake:': '❄️', ':fire:': '🔥', ':droplet:': '💧',
+  ':ocean:': '🌊', ':earth_americas:': '🌎', ':earth_africa:': '🌍',
+  ':earth_asia:': '🌏', ':globe_with_meridians:': '🌐',
+  ':house:': '🏠', ':house_with_garden:': '🏡', ':office:': '🏢',
+  ':hospital:': '🏥', ':bank:': '🏦', ':hotel:': '🏨',
+  ':school:': '🏫', ':church:': '⛪', ':mountain:': '⛰️',
+  ':camping:': '🏕️', ':beach_umbrella:': '🏖️', ':desert:': '🏜️',
+  ':island:': '🏝️', ':national_park:': '🏞️',
+  
+  // Objects
+  ':watch:': '⌚', ':phone:': '📱', ':calling:': '📲',
+  ':computer:': '💻', ':keyboard:': '⌨️', ':desktop_computer:': '🖥️',
+  ':printer:': '🖨️', ':mouse:': '🖱️', ':trackball:': '🖲️',
+  ':camera:': '📷', ':camera_flash:': '📸', ':video_camera:': '📹',
+  ':movie_camera:': '🎥', ':tv:': '📺', ':radio:': '📻',
+  ':cd:': '💿', ':dvd:': '📀', ':bulb:': '💡',
+  ':flashlight:': '🔦', ':candle:': '🕯️', ':fire_extinguisher:': '🧯',
+  ':battery:': '🔋', ':electric_plug:': '🔌', ':mag:': '🔍',
+  ':lock:': '🔒', ':unlock:': '🔓', ':key:': '🔑',
+  ':hammer:': '🔨', ':wrench:': '🔧', ':scissors:': '✂️',
+  ':link:': '🔗', ':chains:': '⛓️', ':syringe:': '💉',
+  ':pill:': '💊', ':bookmark:': '🔖', ':toilet:': '🚽',
+  ':shower:': '🚿', ':book:': '📖', ':notebook:': '📓',
+  ':ledger:': '📒', ':closed_book:': '📕', ':green_book:': '📗',
+  ':blue_book:': '📘', ':orange_book:': '📙', ':books:': '📚',
+  ':memo:': '📝', ':pencil2:': '✏️', ':crayon:': '🖍️',
+  ':paintbrush:': '🖌️', ':mag_right:': '🔎',
+  ':briefcase:': '💼', ':file_folder:': '📁', ':open_file_folder:': '📂',
+  ':card_index_dividers:': '🗂️', ':calendar:': '📆',
+  ':chart_with_upwards_trend:': '📈', ':chart_with_downwards_trend:': '📉',
+  ':bar_chart:': '📊', ':clipboard:': '📋', ':pushpin:': '📌',
+  ':paperclip:': '📎', ':email:': '📧', ':envelope:': '✉️',
+  ':inbox_tray:': '📥', ':outbox_tray:': '📤', ':package:': '📦',
+  ':mailbox:': '📫', ':mailbox_closed:': '📪',
+  
+  // Symbols
+  ':heart_exclamation:': '❣️', ':heavy_heart_exclamation:': '❣️',
+  ':heavy_check_mark:': '✔️', ':check:': '✅', ':x:': '❌',
+  ':heavy_multiplication_x:': '✖️', ':heavy_plus_sign:': '➕',
+  ':heavy_minus_sign:': '➖', ':heavy_division_sign:': '➗',
+  ':question:': '❓', ':grey_question:': '❔', ':grey_exclamation:': '❕',
+  ':exclamation:': '❗', ':warning:': '⚠️', ':bangbang:': '‼️',
+  ':interrobang:': '⁉️', ':arrow_right:': '➡️', ':arrow_left:': '⬅️',
+  ':arrow_up:': '⬆️', ':arrow_down:': '⬇️', ':arrow_upper_right:': '↗️',
+  ':arrow_lower_right:': '↘️', ':arrow_lower_left:': '↙️',
+  ':arrow_upper_left:': '↖️', ':arrow_up_down:': '↕️',
+  ':left_right_arrow:': '↔️', ':arrows_counterclockwise:': '🔄',
+  ':arrow_right_hook:': '↪️', ':leftwards_arrow_with_hook:': '↩️',
+  ':arrow_heading_up:': '⤴️', ':arrow_heading_down:': '⤵️',
+  ':recycle:': '♻️', ':white_check_mark:': '✅', ':cool:': '🆒',
+  ':new:': '🆕', ':free:': '🆓', ':zero:': '0️⃣', ':one:': '1️⃣',
+  ':two:': '2️⃣', ':three:': '3️⃣', ':four:': '4️⃣',
+  ':five:': '5️⃣', ':six:': '6️⃣', ':seven:': '7️⃣',
+  ':eight:': '8️⃣', ':nine:': '9️⃣', ':keycap_ten:': '🔟',
+  ':hash:': '#️⃣', ':asterisk:': '*️⃣',
+  ':copyright:': '©️', ':registered:': '®️', ':tm:': '™️'
+};
+
+// Function to convert emoji shortcodes to actual emojis
+function convertEmojis(text) {
+  let result = text;
+  // Sort by length (longest first) to avoid partial matches
+  const sortedKeys = Object.keys(emojiMap).sort((a, b) => b.length - a.length);
+  for (const shortcode of sortedKeys) {
+    // Use regex with global flag to replace all occurrences
+    const regex = new RegExp(shortcode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+    result = result.replace(regex, emojiMap[shortcode]);
+  }
+  return result;
+}
+
+// Helper function to check if text is a URL
+function isURL(text) {
+  try {
+    const url = new URL(text);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    // Also match common URL patterns without protocol
+    return /^(www\.|[a-zA-Z0-9-]+\.[a-zA-Z]{2,})(\/.*)?$/.test(text);
+  }
+}
+
+// Function to convert GitHub-style callouts/alerts
+function convertGitHubCallouts(text) {
+  // Match patterns like:
+  // > [!NOTE]
+  // > Content here
+  // > More content
+  
+  const calloutRegex = /^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$((?:\n>\s*.*)*)/gim;
+  
+  const calloutConfig = {
+    'NOTE': { icon: 'ℹ️', color: '#0969da', bg: 'rgba(9, 105, 218, 0.1)', border: '#0969da' },
+    'TIP': { icon: '💡', color: '#1f883d', bg: 'rgba(31, 136, 61, 0.1)', border: '#1f883d' },
+    'IMPORTANT': { icon: '💜', color: '#8250df', bg: 'rgba(130, 80, 223, 0.1)', border: '#8250df' },
+    'WARNING': { icon: '⚠️', color: '#bf8700', bg: 'rgba(191, 135, 0, 0.1)', border: '#bf8700' },
+    'CAUTION': { icon: '🛑', color: '#cf222e', bg: 'rgba(207, 34, 46, 0.1)', border: '#cf222e' }
+  };
+  
+  return text.replace(calloutRegex, (match, type, content) => {
+    const config = calloutConfig[type.toUpperCase()];
+    if (!config) return match;
+    
+    // Clean up the content: remove leading '>' and trim
+    const cleanContent = content
+      .split('\n')
+      .map(line => line.replace(/^>\s*/, ''))
+      .filter(line => line.trim())
+      .join('\n');
+    
+    // Create a custom HTML block for the callout
+    return `<div class="github-callout github-callout-${type.toLowerCase()}" style="border-left: 4px solid ${config.border}; background: ${config.bg}; padding: 12px 16px; margin: 16px 0; border-radius: 6px;">
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+<span style="font-size: 20px;">${config.icon}</span>
+<strong style="color: ${config.color}; font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px;">${type}</strong>
+</div>
+<div style="color: var(--text-primary); line-height: 1.6;">${cleanContent}</div>
+</div>`;
+  });
+}
+
+// ==================== EMOJI PICKER ====================
+const emojisByCategory = {
+  all: Object.values(emojiMap),
+  smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '😶‍🌫️', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😫', '🥱'],
+  gestures: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋'],
+  animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐕‍🦺', '🐈', '🐓', '🦃', '🦚', '🦜', '🦢', '🦩', '🕊️', '🐇', '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔'],
+  food: ['🍕', '🍔', '🍟', '🌭', '🍿', '🧈', '🥓', '🥚', '🍳', '🧇', '🥞', '🧈', '🍞', '🥐', '🥖', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡', '🦀', '🦞', '🦐', '🦑', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🫖', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🥤', '🧃', '🧉', '🧊', '🥢', '🍽️', '🍴', '🥄', '🔪'],
+  travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🦯', '🦽', '🦼', '🛴', '🚲', '🛵', '🏍️', '🛺', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚁', '🛸', '🚀', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '⛽', '🚧', '🚦', '🚥', '🚏', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🏠', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏨', '🏪', '🏫', '🏩', '💒', '🏛️', '⛪', '🕌', '🕍', '🛕', '🕋'],
+  activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤸', '🤼', '🤾', '🤹', '🧘', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮', '🎰', '🧩'],
+  objects: ['⌚', '📱', '📲', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '🕹️', '🗜️', '💾', '💿', '📀', '📼', '📷', '📸', '📹', '🎥', '📽️', '🎞️', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⌛', '⏳', '📡', '🔋', '🔌', '💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '💰', '💳', '💎', '⚖️', '🧰', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🔩', '⚙️', '🧱', '⛓️', '🧲', '🔫', '💣', '🧨', '🪓', '🔪', '🗡️', '⚔️', '🛡️', '🚬', '⚰️', '⚱️', '🏺', '🔮', '📿', '🧿', '💈', '⚗️', '🔭', '🔬', '🕳️', '💊', '💉', '🩸', '🩹', '🩺', '🌡️', '🧬', '🦠', '🧫', '🧪', '🌡️', '🧹', '🧺', '🧻', '🚽', '🚰', '🚿', '🛁', '🛀', '🧼', '🪒', '🧽', '🧴', '🛎️', '🔑', '🗝️', '🚪', '🪑', '🛋️', '🛏️', '🧸', '🖼️', '🛍️', '🛒'],
+  symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', '➿', '🌀', '♠️', '♣️', '♥️', '♦️', '🆗', '🆙', '🆒', '🆕', '🆓', '🔟']
+};
+
+let currentEmojiCategory = 'all';
+
+function openEmojiPicker() {
+  const overlay = document.getElementById('emoji-picker-overlay');
+  const emojiGrid = document.getElementById('emoji-grid');
+  const emojiSearch = document.getElementById('emoji-search');
+  
+  if (!overlay || !emojiGrid) return;
+  
+  overlay.style.display = 'flex';
+  emojiSearch.value = '';
+  currentEmojiCategory = 'all';
+  renderEmojiGrid();
+  
+  // Focus search input
+  setTimeout(() => emojiSearch.focus(), 100);
+}
+
+function closeEmojiPicker() {
+  const overlay = document.getElementById('emoji-picker-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function renderEmojiGrid(emojis = null) {
+  const emojiGrid = document.getElementById('emoji-grid');
+  if (!emojiGrid) return;
+  
+  const emojisToShow = emojis || emojisByCategory[currentEmojiCategory] || emojisByCategory.all;
+  
+  emojiGrid.innerHTML = '';
+  emojisToShow.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-item';
+    btn.textContent = emoji;
+    btn.title = emoji;
+    btn.addEventListener('click', () => {
+      insertEmoji(emoji);
+      closeEmojiPicker();
+    });
+    emojiGrid.appendChild(btn);
+  });
+}
+
+function insertEmoji(emoji) {
+  if (!markdownInput) return;
+  
+  const start = markdownInput.selectionStart;
+  const end = markdownInput.selectionEnd;
+  const value = markdownInput.value;
+  
+  markdownInput.value = value.substring(0, start) + emoji + value.substring(end);
+  markdownInput.selectionStart = markdownInput.selectionEnd = start + emoji.length;
+  
+  markdownInput.focus();
+  hasUnsavedChanges = true;
+  updatePreview();
+}
+
 // Configure marked options
 marked.setOptions({
   breaks: true, // Treat single line breaks as <br>
@@ -29,6 +322,7 @@ let currentFileData = null;
 let hasUnsavedChanges = false;
 let lastSavedContent = '';
 let isEmptyFile = true;
+let fileEverHadContent = false; // Track if file was ever saved with content
 // Status bar elements
 let statusWord;
 let statusChar;
@@ -83,8 +377,41 @@ function initializeNavbar() {
   const homeBtn = document.getElementById('home-btn');
   if (homeBtn) {
     homeBtn.addEventListener('click', async () => {
-      if (hasUnsavedChanges && !isFileEmpty()) {
+      console.log('[Home Button] Clicked');
+      console.log('[Home Button] currentFileId:', currentFileId);
+      console.log('[Home Button] hasUnsavedChanges:', hasUnsavedChanges);
+      console.log('[Home Button] fileEverHadContent:', fileEverHadContent);
+      
+      // Check if file is empty and untouched (never had content)
+      const isUntouchedEmpty = isFileEmpty();
+      console.log('[Home Button] isUntouchedEmpty:', isUntouchedEmpty);
+      
+      // Only delete if file is truly untouched (empty AND never had content)
+      if (isUntouchedEmpty) {
+        console.log('[Home Button] File is untouched and empty, deleting and navigating home');
+        if (currentFileId) {
+          try { 
+            await ipcRenderer.invoke('delete-file', currentFileId);
+            console.log('[Home Button] File deleted successfully');
+          } catch (e) {
+            console.error('[Home Button] Delete failed:', e);
+          }
+          try { 
+            localStorage.removeItem('currentFileId');
+          } catch (e) {
+            console.error('[Home Button] localStorage removal failed:', e);
+          }
+        }
+        ipcRenderer.send('load-page', 'home.html');
+        return;
+      }
+      
+      // If file has content OR was previously saved, handle unsaved changes
+      if (hasUnsavedChanges) {
+        console.log('[Home Button] Has unsaved changes, prompting user');
         const result = await window.dialog.confirmSave('You have unsaved changes. Do you want to save before leaving?');
+        console.log('[Home Button] User chose:', result.action);
+        
         if (result.action === 'save') {
           await autoSave();
           hasUnsavedChanges = false;
@@ -93,15 +420,15 @@ function initializeNavbar() {
           hasUnsavedChanges = false;
           ipcRenderer.send('load-page', 'home.html');
         }
+        // If cancelled, do nothing
       } else {
-        // If file is empty & default, delete instead of retaining clutter
-        if (isFileEmpty() && currentFileId) {
-          try { await ipcRenderer.invoke('delete-file', currentFileId); } catch {}
-          try { localStorage.removeItem('currentFileId'); } catch {}
-        }
+        // No unsaved changes, just navigate
+        console.log('[Home Button] No unsaved changes, navigating home');
         ipcRenderer.send('load-page', 'home.html');
       }
     });
+  } else {
+    console.error('[Home Button] Element not found!');
   }
 
   // Export button
@@ -156,6 +483,22 @@ function initializeNavbar() {
     });
   }
 
+  // Emoji button - opens emoji picker
+  const emojiBtn = document.getElementById('emoji-btn');
+  if (emojiBtn) {
+    emojiBtn.addEventListener('click', () => {
+      openEmojiPicker();
+    });
+  }
+
+  // Wiki button - opens markdown cheat sheet
+  const wikiBtn = document.getElementById('wiki-btn');
+  if (wikiBtn) {
+    wikiBtn.addEventListener('click', () => {
+      require('electron').shell.openExternal('https://www.markdownguide.org/cheat-sheet/');
+    });
+  }
+
   // Overflow (hamburger) menu handlers
   const overflowBtn = document.getElementById('overflow-btn');
   const overflowMenu = document.getElementById('overflow-menu');
@@ -179,8 +522,13 @@ function initializeNavbar() {
       switch (action) {
         case 'settings': {
           // Delete ephemeral empty file before leaving if untouched
-          if (isFileEmpty() && currentFileId) {
-            try { await ipcRenderer.invoke('delete-file', currentFileId); } catch {}
+          const isEmpty = isFileEmpty();
+          console.log('[Settings Navigation] isFileEmpty:', isEmpty, 'currentFileId:', currentFileId);
+          if (isEmpty && currentFileId) {
+            console.log('[Settings Navigation] Deleting empty file before navigating to settings');
+            try { await ipcRenderer.invoke('delete-file', currentFileId); } catch (e) {
+              console.error('[Settings Navigation] Delete failed:', e);
+            }
             try { localStorage.removeItem('currentFileId'); } catch {}
           }
           try { localStorage.setItem('returnTo', JSON.stringify({ page: 'editor', fileId: currentFileId })); } catch {}
@@ -245,12 +593,28 @@ function initializeEditor() {
   findCountEl = document.getElementById('find-count');
 }
 
-// Function to check if file is essentially empty
+// Function to check if file is essentially empty AND untouched (never had content)
+// This is used to determine if a file should be auto-deleted on navigation
 function isFileEmpty() {
-  if (!fileTitleInput || !markdownInput) return true;
+  // CRITICAL: If elements aren't available, default to FALSE (safer than TRUE)
+  // This prevents accidental deletion of files
+  if (!fileTitleInput || !markdownInput) {
+    console.warn('[isFileEmpty] DOM elements not available, defaulting to false');
+    return false;
+  }
   const title = fileTitleInput.value.trim();
   const content = markdownInput.value.trim();
-  return (title === '' || title === 'Untitled') && content === '';
+  // Only consider empty if BOTH title is untitled/empty AND content is empty
+  const isUntitled = (title === '' || title === 'Untitled');
+  const hasNoContent = content === '';
+  
+  // IMPORTANT: Only return true if file is empty AND never had content
+  // If a file previously had content and user emptied it, DON'T auto-delete it
+  const shouldDelete = isUntitled && hasNoContent && !fileEverHadContent;
+  
+  console.log('[isFileEmpty] title:', title, 'content length:', content.length, 
+              'fileEverHadContent:', fileEverHadContent, 'shouldDelete:', shouldDelete);
+  return shouldDelete;
 }
 
 // Main initialization function
@@ -294,6 +658,23 @@ function initializeApp() {
     draftTimer = setTimeout(saveDraft, 5000);
   });
 
+  // Auto-link URLs when pasted
+  markdownInput.addEventListener('paste', (e) => {
+    const text = e.clipboardData.getData('text');
+    // Check if pasted text is a URL
+    if (isURL(text)) {
+      e.preventDefault();
+      const markdownLink = `[${text}](${text})`;
+      const start = markdownInput.selectionStart;
+      const end = markdownInput.selectionEnd;
+      const value = markdownInput.value;
+      markdownInput.value = value.substring(0, start) + markdownLink + value.substring(end);
+      markdownInput.selectionStart = markdownInput.selectionEnd = start + markdownLink.length;
+      hasUnsavedChanges = true;
+      updatePreview();
+    }
+  });
+
   // Save title when changed
   fileTitleInput.addEventListener('blur', async () => {
     if (!currentFileId || !currentFileData) return;
@@ -312,6 +693,28 @@ function initializeApp() {
 
   // Handle tab key in textarea
   markdownInput.addEventListener('keydown', (e) => {
+    // Auto-link URLs when space or enter is pressed after typing a URL
+    if (e.key === ' ' || e.key === 'Enter') {
+      const cursorPos = markdownInput.selectionStart;
+      const value = markdownInput.value;
+      const textBeforeCursor = value.substring(0, cursorPos);
+      const words = textBeforeCursor.split(/\s+/);
+      const lastWord = words[words.length - 1];
+      
+      if (lastWord && isURL(lastWord) && !lastWord.match(/^\[.*\]\(.*\)$/)) {
+        e.preventDefault();
+        // Replace the URL with markdown link format
+        const beforeURL = value.substring(0, cursorPos - lastWord.length);
+        const afterCursor = value.substring(cursorPos);
+        const markdownLink = `[${lastWord}](${lastWord})`;
+        markdownInput.value = beforeURL + markdownLink + (e.key === ' ' ? ' ' : '\n') + afterCursor;
+        markdownInput.selectionStart = markdownInput.selectionEnd = beforeURL.length + markdownLink.length + (e.key === ' ' ? 1 : 1);
+        hasUnsavedChanges = true;
+        updatePreview();
+        return;
+      }
+    }
+    
     if (e.key === 'Tab') {
       e.preventDefault();
       const start = markdownInput.selectionStart;
@@ -499,6 +902,11 @@ async function loadFile() {
     fileTitleInput.value = currentFileData.title || 'Untitled';
     markdownInput.value = currentFileData.content || '';
     lastSavedContent = currentFileData.content || '';
+    
+    // Track if this file has ever had content (for smart deletion)
+    fileEverHadContent = (currentFileData.content && currentFileData.content.trim().length > 0);
+    console.log('[loadFile] fileEverHadContent:', fileEverHadContent, 'content length:', (currentFileData.content || '').length);
+    
     updatePreview();
     // Update RPC presence with file title
     ipcRenderer.send('rpc-set-editing', fileTitleInput.value || 'Untitled');
@@ -521,7 +929,11 @@ async function loadFile() {
 function updatePreview() {
   if (!markdownInput || !previewOutput) return;
   try {
-    const md = markdownInput.value || '';
+    let md = markdownInput.value || '';
+    // Convert GitHub callouts BEFORE markdown parsing (so they don't get treated as regular blockquotes)
+    md = convertGitHubCallouts(md);
+    // Convert emoji shortcodes before rendering markdown
+    md = convertEmojis(md);
     const html = marked.parse(md);
     previewOutput.innerHTML = html;
     // Observe headings for active heading indicator
@@ -1073,8 +1485,13 @@ function togglePalette(show) {
 // Settings navigation with deletion of untouched empty file
 function navigateToSettingsSafely() {
   (async () => {
-    if (isFileEmpty() && currentFileId) {
-      try { await ipcRenderer.invoke('delete-file', currentFileId); } catch {}
+    const isEmpty = isFileEmpty();
+    console.log('[navigateToSettingsSafely] isFileEmpty:', isEmpty, 'currentFileId:', currentFileId);
+    if (isEmpty && currentFileId) {
+      console.log('[navigateToSettingsSafely] Deleting empty file');
+      try { await ipcRenderer.invoke('delete-file', currentFileId); } catch (e) {
+        console.error('[navigateToSettingsSafely] Delete failed:', e);
+      }
       try { localStorage.removeItem('currentFileId'); } catch {}
     }
     try { localStorage.setItem('returnTo', JSON.stringify({ page: 'editor', fileId: currentFileId })); } catch {}
@@ -1104,7 +1521,7 @@ function cycleTheme() {
         const newSettings = { ...(settings || {}), theme: next };
         await ipcRenderer.invoke('save-settings', newSettings);
         try { localStorage.setItem('theme', next); } catch {}
-        if (themeLink) themeLink.setAttribute('href', `themes/${next}.css`);
+        if (themeLink) themeLink.setAttribute('href', `../themes/${next}.css`);
       } catch {}
       document.body.setAttribute('data-theme', next);
     })();
@@ -1114,8 +1531,12 @@ function cycleTheme() {
 // Removed cycleLanguage (feature deemed unnecessary)
 
 async function createNewDocumentFromPalette() {
-  if (hasUnsavedChanges && !isFileEmpty()) {
+  const isEmpty = isFileEmpty();
+  console.log('[createNewDocumentFromPalette] hasUnsavedChanges:', hasUnsavedChanges, 'isFileEmpty:', isEmpty);
+  
+  if (hasUnsavedChanges && !isEmpty) {
     const result = await window.dialog.confirmSave('You have unsaved changes. Save before creating a new file?');
+    console.log('[createNewDocumentFromPalette] User chose:', result.action);
     if (result.action === 'save') {
       await autoSave();
     } else if (result.action === 'cancel') {
@@ -1124,6 +1545,7 @@ async function createNewDocumentFromPalette() {
   }
   try {
     const fileData = await ipcRenderer.invoke('create-new-file');
+    console.log('[createNewDocumentFromPalette] New file created:', fileData);
     if (fileData && fileData.id) {
       localStorage.setItem('currentFileId', fileData.id);
       ipcRenderer.send('load-page', 'editor.html');
@@ -1156,7 +1578,12 @@ function toggleGitPanelFromPalette() {
 
 // Auto-save current document content and title
 async function autoSave() {
-  if (!currentFileId) return;
+  if (!currentFileId) {
+    console.warn('[autoSave] No currentFileId, aborting save');
+    return;
+  }
+  
+  console.log('[autoSave] Starting save for fileId:', currentFileId);
   
   const autosaveIndicator = document.getElementById('autosave-indicator');
   const autosaveText = autosaveIndicator?.querySelector('.autosave-text');
@@ -1175,11 +1602,32 @@ async function autoSave() {
     
     const title = (fileTitleInput && fileTitleInput.value) ? fileTitleInput.value : 'Untitled';
     const content = (markdownInput && markdownInput.value) ? markdownInput.value : '';
+    
+    console.log('[autoSave] Saving title:', title, 'content length:', content.length);
+    
+    // Track if file has ever had content (for smart deletion logic)
+    if (content.trim().length > 0) {
+      fileEverHadContent = true;
+      console.log('[autoSave] File now has content, marking fileEverHadContent = true');
+    }
+    
+    // Save both title and content
+    await ipcRenderer.invoke('rename-file', currentFileId, title);
+    console.log('[autoSave] Title saved successfully');
+    
+    await ipcRenderer.invoke('auto-save', currentFileId, content);
+    console.log('[autoSave] Content saved successfully');
+    
     lastSavedContent = content;
     hasUnsavedChanges = false;
-    await ipcRenderer.invoke('auto-save', currentFileId, content);
-  // Clear any draft after successful save
-  try { await ipcRenderer.invoke('delete-draft', currentFileId); } catch {}
+    
+    // Clear any draft after successful save
+    try { 
+      await ipcRenderer.invoke('delete-draft', currentFileId);
+      console.log('[autoSave] Draft deleted successfully');
+    } catch (e) {
+      console.warn('[autoSave] Draft deletion failed:', e);
+    }
     
     // Show saved state
     if (autosaveIndicator) {
@@ -1195,8 +1643,10 @@ async function autoSave() {
         autosaveIndicator.classList.remove('show');
       }, 3000);
     }
+    
+    console.log('[autoSave] Save completed successfully');
   } catch (err) {
-    console.error('Auto-save failed:', err);
+    console.error('[autoSave] Save failed:', err);
     
     // Show error state
     if (autosaveIndicator) {
@@ -1417,7 +1867,10 @@ document.getElementById('countdown-start').addEventListener('click', function() 
           document.getElementById('countdown-start').classList.add('start');
           // Play alarm sound and show notification
           playAlarmSound();
-          new Notification((window.i18n ? i18n.t('countdown_done_title') : 'Countdown Finished!'), { body: (window.i18n ? i18n.t('countdown_done_body') : 'Your countdown has reached zero.') });
+          new Notification((window.i18n ? i18n.t('countdown_done_title') : 'Countdown Finished!'), { 
+            body: (window.i18n ? i18n.t('countdown_done_body') : 'Your countdown has reached zero.'),
+            icon: '../assets/icon.ico'
+          });
         }
       }, 1000);
       this.textContent = (window.i18n ? i18n.t('pause') : 'Pause');
@@ -1501,6 +1954,66 @@ ipcRenderer.on('request-close', async () => {
     ipcRenderer.send('confirm-close');
   }
 });
+
+// ==================== EMOJI PICKER INITIALIZATION ====================
+function initEmojiPicker() {
+  const emojiOverlay = document.getElementById('emoji-picker-overlay');
+  const emojiClose = document.getElementById('emoji-close');
+  const emojiSearch = document.getElementById('emoji-search');
+  const emojiCategories = document.querySelectorAll('.emoji-category');
+  
+  // Close button
+  if (emojiClose) {
+    emojiClose.addEventListener('click', closeEmojiPicker);
+  }
+  
+  // Close on overlay click (outside modal)
+  if (emojiOverlay) {
+    emojiOverlay.addEventListener('click', (e) => {
+      if (e.target === emojiOverlay) {
+        closeEmojiPicker();
+      }
+    });
+  }
+  
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && emojiOverlay && emojiOverlay.style.display === 'flex') {
+      closeEmojiPicker();
+    }
+  });
+  
+  // Category buttons
+  emojiCategories.forEach(btn => {
+    btn.addEventListener('click', () => {
+      emojiCategories.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentEmojiCategory = btn.getAttribute('data-category');
+      renderEmojiGrid();
+    });
+  });
+  
+  // Search functionality
+  if (emojiSearch) {
+    emojiSearch.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      if (!query) {
+        renderEmojiGrid();
+        return;
+      }
+      
+      // Search through all emojis and emoji names
+      const allEmojis = emojisByCategory.all;
+      const filtered = allEmojis.filter(emoji => {
+        // Find the emoji shortcode
+        const shortcode = Object.keys(emojiMap).find(key => emojiMap[key] === emoji);
+        return shortcode && shortcode.toLowerCase().includes(query);
+      });
+      
+      renderEmojiGrid(filtered);
+    });
+  }
+}
 
 // Git Integration
 let currentRepoUrl = '';
@@ -1660,6 +2173,7 @@ if (gitPushBtn && gitFilename && gitCommitMsg) {
 // Run initialization when DOM is ready
 const bootstrap = () => {
   try { initializeApp(); } catch (e) { console.error('initializeApp failed:', e); }
+  try { initEmojiPicker(); } catch (e) { console.error('initEmojiPicker failed:', e); }
   try { initGitIntegration(); } catch (e) { console.error('initGitIntegration failed:', e); }
   try { if (window.i18n && i18n && typeof i18n.init === 'function') i18n.init().catch(e => console.warn('i18n init failed:', e)); } catch (e) { console.warn('i18n bootstrap failed:', e); }
 };

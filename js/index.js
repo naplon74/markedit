@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, shell, protocol } = require('electr
 let autoUpdater = null; // lazy-required when packaged
 const path = require('path');
 const fs = require('fs');
-const storage = require('./js/storage');
+const storage = require('./storage');
 const simpleGit = require('simple-git');
 
 // Set app name for notifications
@@ -102,7 +102,7 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     frame: false,
-    icon: path.join(__dirname, 'assets', 'icon.ico'),
+    icon: path.join(__dirname, '..', 'assets', 'icon.ico'),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -124,15 +124,15 @@ function createWindow() {
   // Check if we have a pending file to open
   if (pendingFileToOpen) {
     // First load the editor page, then import the file after it's ready
-    mainWindow.loadFile('html/editor.html');
+    mainWindow.loadFile('editor.html');
     mainWindow.webContents.once('did-finish-load', () => {
       importAndOpenFile(pendingFileToOpen);
       pendingFileToOpen = null;
     });
   } else if (!settings.username) {
-    mainWindow.loadFile('html/onboarding.html');
+    mainWindow.loadFile('onboarding.html');
   } else {
-    mainWindow.loadFile('html/home.html');
+    mainWindow.loadFile('home.html');
   }
   if (rpcEnabled) initRichPresence();
 }
@@ -256,7 +256,7 @@ ipcMain.on('confirm-close', () => {
 });
 
 ipcMain.on('load-page', (event, page) => {
-  if (mainWindow) mainWindow.loadFile(`html/${page}`);
+  if (mainWindow) mainWindow.loadFile(page);
   if (page === 'home.html') setPresenceHome();
 });
 
@@ -834,7 +834,7 @@ function importAndOpenFile(filePath) {
         // If we're not on editor page yet, load it first
         const currentURL = mainWindow.webContents.getURL();
         if (!currentURL.includes('editor.html')) {
-          mainWindow.loadFile('html/editor.html');
+          mainWindow.loadFile('editor.html');
           mainWindow.webContents.once('did-finish-load', () => {
             mainWindow.webContents.executeJavaScript(`
               try { 
@@ -873,7 +873,7 @@ function importAndOpenFile(filePath) {
         // If we're not on editor page yet, load it first
         const currentURL = mainWindow.webContents.getURL();
         if (!currentURL.includes('editor.html')) {
-          mainWindow.loadFile('html/editor.html');
+          mainWindow.loadFile('editor.html');
           mainWindow.webContents.once('did-finish-load', () => {
             mainWindow.webContents.executeJavaScript(`
               try {

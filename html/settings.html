@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Markdown Editor</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="../css/settings.css">
+  <script>
+    // Load theme before page renders (scoped to avoid global collisions)
+    (function() {
+      const earlyTheme = localStorage.getItem('theme') || 'dark';
+      const themeLink = document.createElement('link');
+      themeLink.rel = 'stylesheet';
+      themeLink.href = `../themes/${earlyTheme}.css`;
+      themeLink.dataset.theme = earlyTheme;
+      document.head.appendChild(themeLink);
+    })();
+  </script>
+  <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+</head>
+<body>
+  <!-- Custom Titlebar -->
+  <div class="custom-titlebar">
+    <div class="titlebar-left">
+      <button class="titlebar-button" id="home-btn" title="Go to Home">
+        <i class="fas fa-home"></i>
+      </button>
+    </div>
+    <div class="titlebar-center">
+      <span class="titlebar-title" data-i18n="settings_title">Settings</span>
+    </div>
+    <div class="titlebar-right">
+      <div class="window-controls">
+        <button class="window-button" id="minimize-btn">
+          <i class="fas fa-window-minimize"></i>
+        </button>
+        <button class="window-button" id="maximize-btn">
+          <i class="fas fa-window-maximize"></i>
+        </button>
+        <button class="window-button close" id="close-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vertical Tabs Layout -->
+  <div class="settings-layout">
+    <!-- Sidebar with tabs -->
+    <div class="settings-sidebar">
+      <div class="settings-tab active" data-tab="appearance">
+        <i class="fas fa-palette"></i>
+        <span data-i18n="tab_appearance">Appearance</span>
+      </div>
+      <div class="settings-tab" data-tab="language">
+        <i class="fas fa-language"></i>
+        <span>Language</span>
+      </div>
+      <div class="settings-tab" data-tab="integrations">
+        <i class="fas fa-plug"></i>
+        <span data-i18n="tab_integrations">Integrations</span>
+      </div>
+      <div class="settings-tab" data-tab="changelog">
+        <i class="fas fa-history"></i>
+        <span>Changelog</span>
+      </div>
+      <div class="settings-tab" data-tab="danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span data-i18n="tab_danger">Danger Zone</span>
+      </div>
+      <div class="settings-tab" data-tab="back">
+        <i class="fas fa-arrow-left"></i>
+        <span data-i18n="back_to_home">Back to Home</span>
+      </div>
+    </div>
+
+    <!-- Main content area -->
+    <div class="settings-main">
+      
+      <!-- Appearance Tab Content -->
+      <div class="settings-content active" id="appearance-content">
+        <div class="settings-container">
+          <div class="settings-header">
+            <h1><i class="fas fa-palette"></i> <span data-i18n="appearance_header">Appearance</span></h1>
+            <p>Customize the visual theme of your editor</p>
+          </div>
+
+          <div class="setting-section">
+      <div class="theme-grid">
+        <div class="theme-card" data-theme="dark">
+          <div class="theme-preview theme-preview-dark">
+            <div class="theme-color" style="background: #1e1e1e;"></div>
+            <div class="theme-color" style="background: #007acc;"></div>
+            <div class="theme-color" style="background: #252526;"></div>
+          </div>
+          <div class="theme-name">Dark</div>
+          <div class="theme-description">Default dark theme</div>
+        </div>
+
+        <div class="theme-card" data-theme="light">
+          <div class="theme-preview theme-preview-light">
+            <div class="theme-color" style="background: #ffffff;"></div>
+            <div class="theme-color" style="background: #0078d4;"></div>
+            <div class="theme-color" style="background: #f3f3f3;"></div>
+          </div>
+          <div class="theme-name">Light</div>
+          <div class="theme-description">Clean light theme</div>
+        </div>
+
+        <div class="theme-card" data-theme="flowify">
+          <div class="theme-preview theme-preview-flowify">
+            <div class="theme-color" style="background: #0d3d2e;"></div>
+            <div class="theme-color" style="background: #2d8659;"></div>
+            <div class="theme-color" style="background: #1a5943;"></div>
+          </div>
+          <div class="theme-name">Green forest</div>
+          <div class="theme-description">Green forest theme</div>
+        </div>
+
+        <div class="theme-card" data-theme="deep-ocean">
+          <div class="theme-preview theme-preview-ocean">
+            <div class="theme-color" style="background: #0a1f44;"></div>
+            <div class="theme-color" style="background: #00c8ff;"></div>
+            <div class="theme-color" style="background: #0f2d5c;"></div>
+          </div>
+          <div class="theme-name">Deep ocean</div>
+          <div class="theme-description">Calm, deep blue theme</div>
+        </div>
+
+        <div class="theme-card" data-theme="sunset">
+          <div class="theme-preview theme-preview-sunset">
+            <div class="theme-color" style="background: #7a2f2a;"></div>
+            <div class="theme-color" style="background: #ff7a59;"></div>
+            <div class="theme-color" style="background: #b55a3c;"></div>
+          </div>
+          <div class="theme-name">Sunset</div>
+          <div class="theme-description">Warm orange dusk</div>
+        </div>
+
+        <div class="theme-card" data-theme="cyberpunk">
+          <div class="theme-preview theme-preview-cyberpunk">
+            <div class="theme-color" style="background: #ff00aa;"></div>
+            <div class="theme-color" style="background: #00ffd5;"></div>
+            <div class="theme-color" style="background: #161629;"></div>
+          </div>
+          <div class="theme-name">Cyberpunk</div>
+          <div class="theme-description">Neon on dark</div>
+        </div>
+      </div>
+      <div class="save-indicator" id="save-indicator">
+        <i class="fas fa-check-circle"></i>
+        <span data-i18n="theme_saved">Theme saved!</span>
+      </div>
+        </div>
+        </div>
+      </div>
+      
+      <!-- Language Tab Content -->
+      <div class="settings-content" id="language-content">
+        <div class="settings-container">
+          <div class="settings-header">
+            <h1><i class="fas fa-language"></i> Language & Localization</h1>
+            <p>Choose your preferred language</p>
+          </div>
+
+          <div class="setting-section">
+      <div class="setting-item">
+        <div>
+          <div class="setting-label" data-i18n="app_language_label">App language</div>
+          <div class="setting-description" data-i18n="app_language_desc">Choose the language used across the app (requires restart for full effect).</div>
+        </div>
+        <select id="language-select" style="background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--input-border); border-radius: 6px; padding: 8px 12px;">
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="es">Español</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+      <div class="save-indicator" id="lang-save-indicator">
+        <i class="fas fa-check-circle"></i>
+        <span data-i18n="language_saved">Language saved!</span>
+      </div>
+        </div>
+        </div>
+      </div>
+
+    <!-- Integrations Tab Content -->
+    <div class="settings-content" id="integrations-content">
+      <div class="settings-container">
+        <div class="settings-header">
+          <h1><i class="fas fa-plug"></i> <span data-i18n="integrations_header">Integrations</span></h1>
+          <p>Connect with external services</p>
+        </div>
+
+        <div class="setting-section">
+      
+      <div class="setting-item">
+        <div>
+          <div class="setting-label"><i class="fab fa-discord"></i> <span data-i18n="rpc_enable_label">Discord Rich Presence</span></div>
+          <div class="setting-description" data-i18n="rpc_desc">Show what you're doing in Markedit on your Discord profile.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="rpc-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="save-indicator" id="rpc-save-indicator">
+        <i class="fas fa-check-circle"></i>
+        <span data-i18n="rpc_saved">Discord RPC setting saved!</span>
+      </div>
+
+      <div class="setting-item" style="margin-top: 16px;">
+        <div>
+          <div class="setting-label"><i class="fab fa-github"></i> <span data-i18n="git_enable_label">Git Integration</span></div>
+          <div class="setting-description" data-i18n="git_enable_desc">Show Git panel in the editor to push your markdown files to GitHub repositories.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="git-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="save-indicator" id="git-save-indicator">
+        <i class="fas fa-check-circle"></i>
+        <span data-i18n="git_saved">Git integration setting saved!</span>
+      </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- Changelog Tab Content -->
+      <div class="settings-content" id="changelog-content">
+        <div class="settings-container">
+          <div class="settings-header">
+            <h1><i class="fas fa-history"></i> Changelog</h1>
+            <p>Recent updates and improvements</p>
+          </div>
+
+          <div class="setting-section">
+      <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; border: 1px solid var(--border-primary);">
+        
+        <div class="changelog-entry">
+          <h3 style="color: var(--accent-primary); font-size: 18px; margin: 0 0 16px 0;"><i class="fas fa-star"></i> Version 1.3.1 - Latest Updates</h3>
+          
+          <div class="changelog-item" style="margin-bottom: 20px;">
+            <strong style="color: var(--text-primary); font-size: 15px; display: block; margin-bottom: 8px;">😊 Emoji Picker</strong>
+            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+              <li>New emoji picker button with 200+ emojis in 8 categories</li>
+              <li>Search emojis by name for quick access</li>
+              <li>Click any emoji to instantly insert at cursor position</li>
+              <li>Emoji shortcodes (like :joy:) automatically convert in preview</li>
+            </ul>
+          </div>
+
+          <div class="changelog-item" style="margin-bottom: 20px;">
+            <strong style="color: var(--text-primary); font-size: 15px; display: block; margin-bottom: 8px;">🔗 Auto-Link URLs</strong>
+            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+              <li>Paste any URL to automatically convert to markdown link format</li>
+              <li>Type a URL and press Space/Enter to auto-wrap in link syntax</li>
+              <li>Works with https:// URLs and www. domains</li>
+            </ul>
+          </div>
+
+          <div class="changelog-item" style="margin-bottom: 20px;">
+            <strong style="color: var(--text-primary); font-size: 15px; display: block; margin-bottom: 8px;">📖 Markdown Cheat Sheet</strong>
+            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+              <li>New Wiki button opens official Markdown Guide cheat sheet</li>
+              <li>Quick reference for markdown syntax and best practices</li>
+            </ul>
+          </div>
+
+          <div class="changelog-item" style="margin-bottom: 20px;">
+            <strong style="color: var(--text-primary); font-size: 15px; display: block; margin-bottom: 8px;">� Smart File Management</strong>
+            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+              <li>Home button now works correctly with empty files</li>
+              <li>Files that are intentionally emptied are no longer auto-deleted</li>
+              <li>Only truly untouched empty files are removed on navigation</li>
+              <li>Fixed external .md file opening - no more black screen</li>
+            </ul>
+          </div>
+
+          <div class="changelog-item" style="margin-bottom: 20px;">
+            <strong style="color: var(--text-primary); font-size: 15px; display: block; margin-bottom: 8px;">🎨 UI Polish</strong>
+            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+              <li>Removed ugly white focus rectangles on click</li>
+              <li>Added subtle accent-colored outlines for keyboard navigation</li>
+              <li>Improved responsive button visibility at different window sizes</li>
+              <li>Settings now use vertical tabs for better navigation</li>
+            </ul>
+          </div>
+
+          <div class="changelog-item" style="margin-bottom: 20px;">
+            <strong style="color: var(--text-primary); font-size: 15px; display: block; margin-bottom: 8px;">� GitHub Callouts Support</strong>
+            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+              <li>Full support for GitHub-style callouts with icons</li>
+              <li>Types: NOTE, TIP, IMPORTANT, WARNING, CAUTION</li>
+              <li>Renders with colored borders, backgrounds, and icons</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="changelog-entry" style="margin-top: 30px; padding-top: 30px; border-top: 2px solid var(--border-primary);">
+          <h3 style="color: var(--text-secondary); font-size: 16px; margin: 0 0 16px 0;"><i class="fas fa-history"></i> Previous Updates (v1.3.0)</h3>
+          
+          <div class="changelog-item" style="margin-bottom: 20px;">
+            <strong style="color: var(--text-primary); font-size: 15px; display: block; margin-bottom: 8px;">⚡ Command Palette Enhancements</strong>
+            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+              <li>Added <strong>Toggle Word Wrap</strong> - Soft wrap long lines (persisted)</li>
+              <li>Added <strong>Insert Timestamp</strong> - Insert current date/time (YYYY-MM-DD HH:mm)</li>
+              <li>Added <strong>Convert to Task List</strong> - Transform selected lines to - [ ] format</li>
+              <li>Added <strong>Toggle Task Checkbox</strong> - Switch checkboxes between [ ] and [x]</li>
+            </ul>
+          </div>
+
+          <div class="changelog-item" style="margin-bottom: 20px;">
+            <strong style="color: var(--text-primary); font-size: 15px; display: block; margin-bottom: 8px;">📝 Markdown Rendering</strong>
+            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+              <li>Fixed single-line breaks now render correctly in preview</li>
+              <li>Single newlines now create proper line breaks (no more double-Enter needed)</li>
+              <li>Improved block spacing for lists and images</li>
+            </ul>
+          </div>
+
+          <div class="changelog-item" style="margin-bottom: 20px;">
+            <strong style="color: var(--text-primary); font-size: 15px; display: block; margin-bottom: 8px;">📁 File Management</strong>
+            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+              <li>Auto-delete empty untitled files on navigation or app close</li>
+              <li>External .md files are deduplicated when imported via file picker</li>
+              <li>Drag-and-drop file import now functional with FileReader API</li>
+            </ul>
+          </div>
+
+          <div class="changelog-item" style="margin-bottom: 0;">
+            <strong style="color: var(--text-primary); font-size: 15px; display: block; margin-bottom: 8px;">✏️ Editor Enhancements</strong>
+            <ul style="margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+              <li>Pressing Enter on empty list item now exits cleanly with blank line</li>
+              <li>Images automatically wrapped with newlines for proper block separation</li>
+              <li>Smart paste detects image URLs and auto-formats them</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="changelog-footer" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-primary); color: var(--text-secondary); font-size: 13px;">
+          <i class="fas fa-info-circle"></i> MarkEdit continuously improves to enhance your markdown editing experience.
+        </div>
+      </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- Danger Zone Tab Content -->
+      <div class="settings-content" id="danger-content">
+        <div class="settings-container">
+          <div class="settings-header">
+            <h1><i class="fas fa-exclamation-triangle" style="color: var(--danger, #e81123);"></i> <span data-i18n="danger_header">Danger Zone</span></h1>
+            <p style="color: var(--danger-fg, #ff6b6b);" data-i18n="danger_subtitle">Irreversible actions - proceed with caution</p>
+          </div>
+
+          <div class="setting-section">
+      <div class="setting-item" style="border: 1px solid var(--border-primary);">
+        <div>
+          <div class="setting-label" style="color: var(--text-primary);" data-i18n="reset_app_label">Reset application</div>
+          <div class="setting-description" data-i18n="reset_app_desc">Clears all settings and returns to onboarding. Your files are not deleted.</div>
+        </div>
+        <button id="danger-reset-btn" style="background: var(--danger-bg, rgba(232,17,35,0.15)); color: var(--danger-fg, #ff6b6b); border: 1px solid var(--danger-border, rgba(232,17,35,0.35)); padding: 8px 12px; border-radius: 6px; cursor: pointer;" data-i18n="reset_app_button">Reset app</button>
+      </div>
+      <div class="setting-item" style="border: 1px solid var(--border-primary); margin-top:16px;">
+        <div>
+          <div class="setting-label" style="color: var(--danger-fg,#ff6b6b);" data-i18n="delete_all_data_label">Delete ALL data (files & cache)</div>
+          <div class="setting-description" data-i18n="delete_all_data_desc">Irreversibly deletes every saved markdown file, drafts, images and cached git repos. Use only if you want a clean slate.</div>
+        </div>
+        <button id="danger-clear-data-btn" style="background: var(--danger-bg, rgba(232,17,35,0.25)); color: var(--danger-fg, #ff6b6b); border: 1px solid var(--danger-border, rgba(232,17,35,0.45)); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight:600;" data-i18n="delete_all_data_button">Delete all data</button>
+      </div>
+        </div>
+        </div>
+      </div>
+
+    </div> <!-- Close settings-main -->
+  </div> <!-- Close settings-layout -->
+
+  <script src="../js/dialog.js"></script>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/settings.js"></script>
+</body>
+</html>

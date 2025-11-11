@@ -25,6 +25,18 @@ const translations = {
     reset_app_button: 'Reset app',
     back_to_home: 'Back to Home',
 
+    // Settings tabs
+    tab_appearance: 'Appearance',
+    tab_integrations: 'Integrations',
+    tab_danger: 'Danger Zone',
+    appearance_header: 'Appearance',
+    integrations_header: 'Integrations',
+    danger_header: 'Danger Zone',
+    danger_subtitle: 'Irreversible actions - proceed with caution',
+    delete_all_data_label: 'Delete ALL data (files & cache)',
+    delete_all_data_desc: 'Irreversibly deletes every saved markdown file, drafts, images and cached git repos. Use only if you want a clean slate.',
+    delete_all_data_button: 'Delete all data',
+
     home_welcome: 'Welcome back!',
     home_subtitle: 'Continue where you left off or start something new',
     new_file: 'New File',
@@ -40,6 +52,9 @@ const translations = {
     go_home: 'Go to Home',
     export_file: 'Export File',
     add_image: 'Add Image',
+    outline_title: 'Outline',
+    toggle_outline: 'Toggle Outline',
+    wiki_button: 'Markdown Cheat Sheet',
 
     git_integration: 'Git Integration',
     git_repo_url: 'Repository URL',
@@ -101,6 +116,18 @@ const translations = {
     reset_app_button: 'Réinitialiser',
     back_to_home: "Retour à l'accueil",
 
+    // Settings tabs
+    tab_appearance: 'Apparence',
+    tab_integrations: 'Intégrations',
+    tab_danger: 'Zone de danger',
+    appearance_header: 'Apparence',
+    integrations_header: 'Intégrations',
+    danger_header: 'Zone de danger',
+    danger_subtitle: 'Actions irréversibles - procédez avec prudence',
+    delete_all_data_label: 'Supprimer TOUTES les données (fichiers et cache)',
+    delete_all_data_desc: 'Supprime définitivement tous les fichiers markdown sauvegardés, brouillons, images et dépôts git en cache. À utiliser uniquement si vous voulez repartir de zéro.',
+    delete_all_data_button: 'Supprimer toutes les données',
+
     home_welcome: 'Bon retour !',
     home_subtitle: 'Reprenez où vous vous êtes arrêté ou commencez quelque chose de nouveau',
     new_file: 'Nouveau fichier',
@@ -116,6 +143,9 @@ const translations = {
     go_home: "Aller à l'accueil",
     export_file: 'Exporter le fichier',
     add_image: 'Ajouter une image',
+    outline_title: 'Plan',
+    toggle_outline: 'Basculer le plan',
+    wiki_button: 'Aide-mémoire Markdown',
 
     git_integration: 'Intégration Git',
     git_repo_url: 'URL du dépôt',
@@ -177,6 +207,18 @@ const translations = {
     reset_app_button: 'Restablecer',
     back_to_home: 'Volver al inicio',
 
+    // Settings tabs
+    tab_appearance: 'Apariencia',
+    tab_integrations: 'Integraciones',
+    tab_danger: 'Zona de peligro',
+    appearance_header: 'Apariencia',
+    integrations_header: 'Integraciones',
+    danger_header: 'Zona de peligro',
+    danger_subtitle: 'Acciones irreversibles - proceder con precaución',
+    delete_all_data_label: 'Eliminar TODOS los datos (archivos y caché)',
+    delete_all_data_desc: 'Elimina irreversiblemente todos los archivos markdown guardados, borradores, imágenes y repositorios git en caché. Úsalo solo si quieres empezar de cero.',
+    delete_all_data_button: 'Eliminar todos los datos',
+
     home_welcome: '¡Bienvenido de nuevo!',
     home_subtitle: 'Continúa donde lo dejaste o empieza algo nuevo',
     new_file: 'Nuevo archivo',
@@ -192,6 +234,9 @@ const translations = {
     go_home: 'Ir al inicio',
     export_file: 'Exportar archivo',
     add_image: 'Añadir imagen',
+    outline_title: 'Esquema',
+    toggle_outline: 'Alternar esquema',
+    wiki_button: 'Guía rápida de Markdown',
 
     git_integration: 'Integración Git',
     git_repo_url: 'URL del repositorio',
@@ -253,6 +298,18 @@ const translations = {
     reset_app_button: 'Zurücksetzen',
     back_to_home: 'Zur Startseite',
 
+    // Settings tabs
+    tab_appearance: 'Aussehen',
+    tab_integrations: 'Integrationen',
+    tab_danger: 'Gefahrenbereich',
+    appearance_header: 'Aussehen',
+    integrations_header: 'Integrationen',
+    danger_header: 'Gefahrenbereich',
+    danger_subtitle: 'Unumkehrbare Aktionen - mit Vorsicht fortfahren',
+    delete_all_data_label: 'ALLE Daten löschen (Dateien & Cache)',
+    delete_all_data_desc: 'Löscht unwiderruflich alle gespeicherten Markdown-Dateien, Entwürfe, Bilder und zwischengespeicherte Git-Repos. Nur verwenden, wenn du komplett neu anfangen möchtest.',
+    delete_all_data_button: 'Alle Daten löschen',
+
     home_welcome: 'Willkommen zurück!',
     home_subtitle: 'Mach dort weiter, wo du aufgehört hast, oder starte etwas Neues',
     new_file: 'Neue Datei',
@@ -268,6 +325,9 @@ const translations = {
     go_home: 'Zur Startseite',
     export_file: 'Datei exportieren',
     add_image: 'Bild hinzufügen',
+    outline_title: 'Gliederung',
+    toggle_outline: 'Gliederung umschalten',
+    wiki_button: 'Markdown-Spickzettel',
 
     git_integration: 'Git Integration',
     git_repo_url: 'Repository URL',
